@@ -9,3 +9,12 @@
 #include "limits.h"
 #include "list.h"
 #include "round.h"
+
+#define MAX_LENGTH 100
+
+struct list_item{
+    struct list_elem;
+    int data;
+}
+
+
