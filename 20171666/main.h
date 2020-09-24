@@ -10,11 +10,16 @@
 #include "list.h"
 #include "round.h"
 
-#define MAX_LENGTH 100
+#define MAX_COMMAND_LENGTH 100
+#define MAX_KIND_LENGTH 20
+#define MAX_NAME_LENGTH 50
 
 struct list_item{
     struct list_elem;
     int data;
 }
 
+struct list* testList;
+struct hash* testHash;
+struct bitmap* testBitmap;
 
