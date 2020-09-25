@@ -23,3 +23,7 @@ struct list* testList;
 struct hash* testHash;
 struct bitmap* testBitmap;
 
+void listCommand(char[]);
+void hashCommand(char[]);
+void bitmapCommand(char[]);
+
