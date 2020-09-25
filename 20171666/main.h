@@ -42,6 +42,7 @@ void listCommand(char[]);
 void hashCommand(char[]);
 void bitmapCommand(char[]);
 
-struct list* findList();
+struct list* findList(char[]);
 void listPush(int);
 void listFrontBack(int);
+void listPop(int);

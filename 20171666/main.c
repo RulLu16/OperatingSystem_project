@@ -17,10 +17,31 @@ void listCommand(char command[]){
         listFrontBack(1);
     }
     else if(!strcmp(command, "list_pop_back")){
+        listPop(0);
     }
     else if(!strcmp(command, "list_pop_front")){
+        listPop(1);
     }
     else if(!strcmp(command, "list_insert")){
+        struct list* list;
+        struct list_elem* e;
+        struct list_elem* new=(struct list_elem*)malloc(sizeof(struct list_elem));
+        struct list_item* item;
+        int position, value;
+
+        scanf("%s", name);
+        scanf("%d %d",&position, &value);
+        list=findList(name);
+
+        if(list==NULL) return;
+
+        e=list_begin(list);
+        for(int i=0;i<position && e!=list_end(list);i++)
+          e=list_next(e);
+
+        list_insert(e, new);
+        item=list_entry(new, struct list_item, elem);
+        item->data=value;
     }
     else if(!strcmp(command, "list_insert_ordered")){
     }
@@ -106,10 +127,7 @@ void bitmapCommand(char command[]){
     }
 }
 
-struct list* findList(){
-    char name[MAX_NAME_LENGTH];
-
-    scanf("%s",name);
+struct list* findList(char name[50]){
     for(int i=0;i<10;i++){
         if(!strcmp(testList[i].name, name)) 
           return testList[i].start;
@@ -122,10 +140,11 @@ void listPush(int idx){
     struct list* list;
     struct list_elem* e=(struct list_elem*)malloc(sizeof(struct list_elem));
     struct list_item* item;
+    char name[MAX_NAME_LENGTH];
     int temp;
 
-    list=findList();
-    scanf("%d", &temp);
+    scanf("%s %d",name, &temp);
+    list=findList(name);
 
     if(list==NULL) return;
 
@@ -139,9 +158,13 @@ void listPush(int idx){
 }
 
 void listFrontBack(int idx){
-    struct list* list=findList();
+    struct list* list;
     struct list_elem* e;
     struct list_item* item;
+    char name[MAX_NAME_LENGTH];
+
+    scanf("%s",name);
+    list=findList(name);
 
     if(list!=NULL){
         if(idx==0)
@@ -153,6 +176,23 @@ void listFrontBack(int idx){
         
     item=list_entry(e, struct list_item, elem);
     printf("%d\n",item->data);
+}
+
+void listPop(int idx){
+    struct list* list;
+    struct list_elem* e;
+    char name[MAX_NAME_LENGTH];
+
+    scanf("%s",name);
+    list=findList(name);
+
+    if(list!=NULL){
+        if(idx==0)
+          e=list_pop_back(list);
+        else
+          e=list_pop_front(list);
+    }
+    else return;
 }
 
 int main(){
@@ -197,6 +237,30 @@ int main(){
             //============ create bitmap =====
         }
         else if(!strcmp(command, "dumpdata")){
+            struct list* list;
+            struct hash* hash;
+            struct bitmap* bitmap;
+
+            scanf("%s",name);
+
+            list=findList(name);
+           // hash=findHash(name);
+            //bitmap=findBitmap(name);
+            if(list!=NULL){
+                struct list_elem* begin=list_begin(list);
+                struct list_elem* end=list_end(list);
+                struct list_item* item;
+                
+                for(struct list_elem* e=begin; e!=end; e=list_next(e)){
+                    item=list_entry(e, struct list_item, elem);
+                    printf("%d ",item->data);
+                }
+                printf("\n");
+            }
+            else if(hash!=NULL){
+            }
+            else if(bitmap!=NULL){
+            }
         }
         else if(!strcmp(command, "delete")){
         }
