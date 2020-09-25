@@ -1,7 +1,6 @@
 #include "main.h"
 
 void listCommand(char command[]){
-    int temp;
     char name[MAX_NAME_LENGTH];
 
     if(!strcmp(command, "list_push_back")){
@@ -26,7 +25,7 @@ void listCommand(char command[]){
         struct list* list;
         struct list_elem* e;
         struct list_elem* new=(struct list_elem*)malloc(sizeof(struct list_elem));
-        struct list_item* item;
+        struct list_item* item=(struct list_item*)malloc(sizeof(struct list_item));
         int position, value;
 
         scanf("%s", name);
@@ -36,12 +35,11 @@ void listCommand(char command[]){
         if(list==NULL) return;
 
         e=list_begin(list);
-        for(int i=0;i<position && e!=list_end(list);i++)
+        item->data=value;
+        for(int i=0;i<position;i++)
           e=list_next(e);
 
-        list_insert(e, new);
-        item=list_entry(new, struct list_item, elem);
-        item->data=value;
+        list_insert(e, &(item->elem));
     }
     else if(!strcmp(command, "list_insert_ordered")){
     }
@@ -138,8 +136,7 @@ struct list* findList(char name[50]){
 
 void listPush(int idx){
     struct list* list;
-    struct list_elem* e=(struct list_elem*)malloc(sizeof(struct list_elem));
-    struct list_item* item;
+    struct list_item* item=(struct list_item*)malloc(sizeof(struct list_item));
     char name[MAX_NAME_LENGTH];
     int temp;
 
@@ -148,13 +145,11 @@ void listPush(int idx){
 
     if(list==NULL) return;
 
-    if(idx==0)
-      list_push_back(list, e);
-    else
-      list_push_front(list, e);
-
-    item=list_entry(e, struct list_item, elem);
     item->data=temp;
+    if(idx==0)
+      list_push_back(list, &(item->elem));
+    else
+      list_push_front(list, &(item->elem));
 }
 
 void listFrontBack(int idx){
