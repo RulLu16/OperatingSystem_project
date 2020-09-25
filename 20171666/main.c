@@ -1,14 +1,20 @@
 #include "main.h"
 
 void listCommand(char command[]){
+    int temp;
+    char name[MAX_NAME_LENGTH];
 
     if(!strcmp(command, "list_push_back")){
+        listPush(0);
     }
     else if(!strcmp(command, "list_push_front")){
+        listPush(1);
     }
     else if(!strcmp(command, "list_front")){
+        listFrontBack(0);
     }
     else if(!strcmp(command, "list_back")){
+        listFrontBack(1);
     }
     else if(!strcmp(command, "list_pop_back")){
     }
@@ -100,11 +106,61 @@ void bitmapCommand(char command[]){
     }
 }
 
+struct list* findList(){
+    char name[MAX_NAME_LENGTH];
+
+    scanf("%s",name);
+    for(int i=0;i<10;i++){
+        if(!strcmp(testList[i].name, name)) 
+          return testList[i].start;
+    }
+
+    return NULL;
+}
+
+void listPush(int idx){
+    struct list* list;
+    struct list_elem* e=(struct list_elem*)malloc(sizeof(struct list_elem));
+    struct list_item* item;
+    int temp;
+
+    list=findList();
+    scanf("%d", &temp);
+
+    if(list==NULL) return;
+
+    if(idx==0)
+      list_push_back(list, e);
+    else
+      list_push_front(list, e);
+
+    item=list_entry(e, struct list_item, elem);
+    item->data=temp;
+}
+
+void listFrontBack(int idx){
+    struct list* list=findList();
+    struct list_elem* e;
+    struct list_item* item;
+
+    if(list!=NULL){
+        if(idx==0)
+          e=list_front(list);
+        else
+          e=list_back(list);
+    }
+    else return;
+        
+    item=list_entry(e, struct list_item, elem);
+    printf("%d\n",item->data);
+}
+
 int main(){
+    int i,j;
     char command[MAX_COMMAND_LENGTH];
     char commandCopy[MAX_COMMAND_LENGTH];
-    char structKind[MAX_KIND_LENGTH];
-    char structName[MAX_NAME_LENGTH];
+    char kind[MAX_KIND_LENGTH];
+    char name[MAX_NAME_LENGTH];
     char* commandKind;
     
     while(1){
@@ -116,17 +172,27 @@ int main(){
         if(!strcmp(command, "quit")) return 0;
 
         if(!strcmp(command, "create")){
-            scanf("%s",structKind);
+            scanf("%s",kind);
 
-            if(!strcmp(structKind, "list")){
+            if(!strcmp(kind, "list")){
+                scanf("%s",name);
+                for(i=0;i<10;i++){
+                    if(testList[i].start==NULL){
+                        strcpy(testList[i].name, name);
+                        testList[i].start=(struct list*)malloc(sizeof(struct list));
+                        list_init(testList[i].start);
+                        break;
+                    }
+                }
+                        
             }
             //============ create list =======
 
-            else if(!strcmp(struckKind, "hash")){
+            else if(!strcmp(kind, "hash")){
             }
             //============ create hash =======
 
-            else if(!strcmp(struckKind, "bitmap")){
+            else if(!strcmp(kind, "bitmap")){
             }
             //============ create bitmap =====
         }

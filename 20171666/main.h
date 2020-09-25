@@ -15,15 +15,33 @@
 #define MAX_NAME_LENGTH 50
 
 struct list_item{
-    struct list_elem;
+    struct list_elem elem;
     int data;
-}
+};
 
-struct list* testList;
-struct hash* testHash;
-struct bitmap* testBitmap;
+typedef struct{
+    struct list* start;
+    char name[50];
+}L_List;
+
+typedef struct{
+    struct hash* start;
+    char name[50];
+}H_List;
+
+typedef struct{
+    struct bitmap* start;
+    char name[50];
+}B_List;
+
+L_List testList[10];
+H_List testHash[10];
+B_List testBitmap[10];
 
 void listCommand(char[]);
 void hashCommand(char[]);
 void bitmapCommand(char[]);
 
+struct list* findList();
+void listPush(int);
+void listFrontBack(int);
