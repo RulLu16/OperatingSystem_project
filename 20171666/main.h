@@ -42,7 +42,9 @@ void listCommand(char[]);
 void hashCommand(char[]);
 void bitmapCommand(char[]);
 
-struct list* findList(char[]);
+struct list* findList(char*);
 void listPush(int);
 void listFrontBack(int);
 void listPop(int);
+void listMinMax(int);
+bool lessList(const struct list_elem*, const struct list_elem*, void*);

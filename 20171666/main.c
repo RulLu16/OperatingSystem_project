@@ -1,7 +1,10 @@
 #include "main.h"
 
 void listCommand(char command[]){
-    char name[MAX_NAME_LENGTH];
+    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
+    struct list* list;
+    struct list_elem* e;
+    struct list_item* item;
 
     if(!strcmp(command, "list_push_back")){
         listPush(0);
@@ -22,10 +25,7 @@ void listCommand(char command[]){
         listPop(1);
     }
     else if(!strcmp(command, "list_insert")){
-        struct list* list;
-        struct list_elem* e;
-        struct list_elem* new=(struct list_elem*)malloc(sizeof(struct list_elem));
-        struct list_item* item=(struct list_item*)malloc(sizeof(struct list_item));
+        item=(struct list_item*)malloc(sizeof(struct list_item));
         int position, value;
 
         scanf("%s", name);
@@ -42,28 +42,96 @@ void listCommand(char command[]){
         list_insert(e, &(item->elem));
     }
     else if(!strcmp(command, "list_insert_ordered")){
+        item=(struct list_item*)malloc(sizeof(struct list_item));
+        int value;
+
+        scanf("%s %d", name, &value);
+        list=findList(name);
+        item->data=value;
+        
+        if(list!=NULL){
+            list_sort(list, lessList, NULL);
+            list_insert_ordered(list, &(item->elem), lessList, NULL);
+        }
     }
     else if(!strcmp(command, "list_empty")){
+        scanf("%s",name);
+        list=findList(name);
+
+        if(list!=NULL){
+            if(list_empty(list))
+              printf("true\n");
+            else
+              printf("false\n");
+        }
     }
     else if(!strcmp(command, "list_size")){
+        scanf("%s",name);
+        list=findList(name);
+
+        if(list!=NULL)
+          printf("%d\n",(int)list_size(list));
     }
     else if(!strcmp(command, "list_max")){
+        listMinMax(0);
     }
     else if(!strcmp(command, "list_min")){
+        listMinMax(1);
     }
     else if(!strcmp(command, "list_remove")){
+        int position;
+        scanf("%s %d",name, &position);
+        list=findList(name);
+
+        if(list!=NULL){
+            e=list_begin(list);
+            for(int i=0;i<position;i++){
+                e=list_next(e);
+            }
+
+            list_remove(e);
+        }
     }
     else if(!strcmp(command, "list_reverse")){
+        scanf("%s",name);
+        list=findList(name);
+
+        if(list!=NULL)
+          list_reverse(list);
     }
     else if(!strcmp(command, "list_shuffle")){
     }
     else if(!strcmp(command, "list_sort")){
+        scanf("%s",name);
+        list=findList(name);
+
+        if(list!=NULL)
+            list_sort(list, lessList, NULL);
     }
     else if(!strcmp(command, "list_splice")){
     }
     else if(!strcmp(command, "list_swap")){
     }
     else if(!strcmp(command, "list_unique")){
+        char tok[2*MAX_NAME_LENGTH+1];
+        char* dup=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
+        struct list* dupList;
+
+        scanf("%[^\n]s",tok);
+        name=strtok(tok, " ");
+        dup=strtok(NULL, " ");
+        list=findList(name);
+
+        if(dup==NULL){
+            if(list!=NULL)
+              list_unique(list, NULL, lessList, NULL);
+        }
+        else{
+            dupList=findList(dup);
+
+            if(list!=NULL && dupList!=NULL)
+              list_unique(list, dupList, lessList, NULL);
+        }
     }
 }
 
@@ -125,7 +193,7 @@ void bitmapCommand(char command[]){
     }
 }
 
-struct list* findList(char name[50]){
+struct list* findList(char* name){
     for(int i=0;i<10;i++){
         if(!strcmp(testList[i].name, name)) 
           return testList[i].start;
@@ -137,7 +205,7 @@ struct list* findList(char name[50]){
 void listPush(int idx){
     struct list* list;
     struct list_item* item=(struct list_item*)malloc(sizeof(struct list_item));
-    char name[MAX_NAME_LENGTH];
+    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
     int temp;
 
     scanf("%s %d",name, &temp);
@@ -146,26 +214,26 @@ void listPush(int idx){
     if(list==NULL) return;
 
     item->data=temp;
-    if(idx==0)
-      list_push_back(list, &(item->elem));
-    else
+    if(idx)
       list_push_front(list, &(item->elem));
+    else
+      list_push_back(list, &(item->elem));
 }
 
 void listFrontBack(int idx){
     struct list* list;
     struct list_elem* e;
     struct list_item* item;
-    char name[MAX_NAME_LENGTH];
+    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
 
     scanf("%s",name);
     list=findList(name);
 
     if(list!=NULL){
-        if(idx==0)
-          e=list_front(list);
-        else
+        if(idx)
           e=list_back(list);
+        else
+          e=list_front(list);
     }
     else return;
         
@@ -176,18 +244,45 @@ void listFrontBack(int idx){
 void listPop(int idx){
     struct list* list;
     struct list_elem* e;
-    char name[MAX_NAME_LENGTH];
+    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
 
     scanf("%s",name);
     list=findList(name);
 
     if(list!=NULL){
-        if(idx==0)
-          e=list_pop_back(list);
-        else
+        if(idx)
           e=list_pop_front(list);
+        else
+          e=list_pop_back(list);
     }
     else return;
+}
+
+void listMinMax(int idx){
+    struct list* list;
+    struct list_elem* e;
+    struct list_item* item=(struct list_item*)malloc(sizeof(struct list_item));
+    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
+
+    scanf("%s",name);
+    list=findList(name);
+
+    if(list!=NULL){
+        if(idx)
+          e=list_min(list, lessList, NULL);
+        else
+          e=list_max(list, lessList, NULL);
+
+        item=list_entry(e,struct list_item, elem);
+        printf("%d\n",item->data);
+    }
+}
+
+bool lessList(const struct list_elem* a, const struct list_elem* b, void* aux){
+    struct list_item* itema=list_entry(a, struct list_item, elem);
+    struct list_item* itemb=list_entry(b, struct list_item, elem);
+
+    return itema->data < itemb->data;
 }
 
 int main(){
@@ -195,7 +290,7 @@ int main(){
     char command[MAX_COMMAND_LENGTH];
     char commandCopy[MAX_COMMAND_LENGTH];
     char kind[MAX_KIND_LENGTH];
-    char name[MAX_NAME_LENGTH];
+    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
     char* commandKind;
     
     while(1){
