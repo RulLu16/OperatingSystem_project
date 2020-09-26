@@ -34,10 +34,8 @@ void listCommand(char command[]){
 
         if(list==NULL) return;
 
-        e=list_begin(list);
+        e=searchListIndex(list, position);
         item->data=value;
-        for(int i=0;i<position;i++)
-          e=list_next(e);
 
         list_insert(e, &(item->elem));
     }
@@ -84,11 +82,7 @@ void listCommand(char command[]){
         list=findList(name);
 
         if(list!=NULL){
-            e=list_begin(list);
-            for(int i=0;i<position;i++){
-                e=list_next(e);
-            }
-
+            e=searchListIndex(list, position);
             list_remove(e);
         }
     }
@@ -100,6 +94,11 @@ void listCommand(char command[]){
           list_reverse(list);
     }
     else if(!strcmp(command, "list_shuffle")){
+        scanf("%s", name);
+        list=findList(name);
+
+        if(list!=NULL)
+          list_shuffle(list);
     }
     else if(!strcmp(command, "list_sort")){
         scanf("%s",name);
@@ -121,22 +120,28 @@ void listCommand(char command[]){
         target=findList(targetName);
 
         if(list!=NULL && target!=NULL){
-            e=list_begin(list);
-            first=list_begin(target);
-            last=list_begin(target);
-
-            for(int i=0;i<position;i++)
-              e=list_next(e);
-            for(int i=0;i<start; i++)
-              first=list_next(first);
-            for(int i=0;i<end;i++)
-              last=list_next(last);
+            e=searchListIndex(list, position);
+            first=searchListIndex(target, start);
+            last=searchListIndex(target, end);
 
             list_splice(e, first, last);
         }
 
     }
     else if(!strcmp(command, "list_swap")){
+        int first, second;
+        struct list_elem* target;
+
+        scanf("%s",name);
+        scanf("%d %d",&first, &second);
+        list=findList(name);
+
+        if(list!=NULL){
+            e=searchListIndex(list, first);
+            target=searchListIndex(list, second);
+
+            list_swap(e, target);
+        }
     }
     else if(!strcmp(command, "list_unique")){
         char tok[2*MAX_NAME_LENGTH+1];
@@ -226,6 +231,15 @@ struct list* findList(char* name){
     }
 
     return NULL;
+}
+
+struct list_elem* searchListIndex(struct list* list, int index){
+    struct list_elem* e=list_begin(list);
+
+    for(int i=0;i<index;i++)
+      e=list_next(e);
+
+    return e;
 }
 
 void listPush(int idx){

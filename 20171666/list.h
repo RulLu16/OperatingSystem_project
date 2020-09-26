@@ -85,6 +85,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <time.h>
+#include <stdlib.h>
 
 /* List element. */
 struct list_elem 
@@ -164,5 +166,9 @@ void list_unique (struct list *, struct list *duplicates,
 /* Max and min. */
 struct list_elem *list_max (struct list *, list_less_func *, void *aux);
 struct list_elem *list_min (struct list *, list_less_func *, void *aux);
+
+/* User defined functions */
+void list_swap (struct list_elem *, struct list_elem *);
+void list_shuffle (struct list *);
 
 #endif /* lib/kernel/list.h */
