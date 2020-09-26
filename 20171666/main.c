@@ -109,6 +109,32 @@ void listCommand(char command[]){
             list_sort(list, lessList, NULL);
     }
     else if(!strcmp(command, "list_splice")){
+        int start, end, position;
+        char* targetName=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
+        struct list_elem* first;
+        struct list_elem* last;
+        struct list* target;
+
+        scanf("%s %d",name,&position);
+        scanf("%s %d %d",targetName, &start, &end);
+        list=findList(name);
+        target=findList(targetName);
+
+        if(list!=NULL && target!=NULL){
+            e=list_begin(list);
+            first=list_begin(target);
+            last=list_begin(target);
+
+            for(int i=0;i<position;i++)
+              e=list_next(e);
+            for(int i=0;i<start; i++)
+              first=list_next(first);
+            for(int i=0;i<end;i++)
+              last=list_next(last);
+
+            list_splice(e, first, last);
+        }
+
     }
     else if(!strcmp(command, "list_swap")){
     }
