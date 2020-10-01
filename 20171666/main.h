@@ -56,3 +56,4 @@ struct hash* findHash(char*);
 void squareHashAction(struct hash_elem*, void*);
 void tripleHashAction(struct hash_elem*, void*);
 void destructHashAction(struct hash_elem*, void*);
+struct bitmap* findBitmap(char*);

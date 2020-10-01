@@ -63,8 +63,7 @@ void listCommand(char command[]){
         scanf("%d", &value);
         item->data=value;
         list_sort(list, lessList, NULL);
-        list_insert_ordered(list, &(item->elem), lessList, NULL);
-        
+        list_insert_ordered(list, &(item->elem), lessList, NULL);    
     }
     else if(!strcmp(command, "list_empty")){
         if(list_empty(list))
@@ -117,7 +116,6 @@ void listCommand(char command[]){
 
             list_splice(e, first, last);
         }
-
     }
     else if(!strcmp(command, "list_swap")){
         int first, second;
@@ -220,6 +218,13 @@ void hashCommand(char command[]){
 }
 
 void bitmapCommand(char command[]){
+    char* name = (char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
+    struct bitmap* bitmap;
+
+    scanf("%s", name);
+    bitmap = findBitmap(name);
+
+    if(bitmap==NULL) return;
 
     if(!strcmp(command, "bitmap_mark")){
     }
@@ -317,6 +322,16 @@ void destructHashAction(struct hash_elem* e, void* aux){
     free(item);
 }
 
+struct bitmap* findBitmap(char* name){
+    for(int i=0;i<10;i++){
+        if(!strcmp(testBitmap[i].name, name))
+          return testBitmap[i].start;
+    }
+
+    return NULL;
+}
+
+
 int main(){
     char command[MAX_COMMAND_LENGTH];
     char commandCopy[MAX_COMMAND_LENGTH];
@@ -344,8 +359,7 @@ int main(){
                         list_init(testList[i].start);
                         break;
                     }
-                }
-                        
+                }                        
             }
             //============ create list =======
 
@@ -385,7 +399,7 @@ int main(){
 
             list=findList(name);
             hash=findHash(name);
-            //bitmap=findBitmap(name);
+            bitmap=findBitmap(name);
             if(list!=NULL){
                 for(struct list_elem* e=list_begin(list); e!=list_end(list); e=list_next(e)){
                     struct list_item* item=list_entry(e, struct list_item, elem);
@@ -402,6 +416,9 @@ int main(){
                 printf("\n");
             }
             else if(bitmap!=NULL){
+                for(int i=0;i<bitmap->bit_cnt;i++)
+                  printf("%lu",bitmap->bits[i]);
+                printf("\n");
             }
         }
         else if(!strcmp(command, "delete")){
