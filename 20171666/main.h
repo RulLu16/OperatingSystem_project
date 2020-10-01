@@ -19,6 +19,11 @@ struct list_item{
     int data;
 };
 
+struct hash_item{
+    struct hash_elem elem;
+    int data;
+};
+
 typedef struct{
     struct list* start;
     char name[50];
@@ -44,8 +49,10 @@ void bitmapCommand(char[]);
 
 struct list* findList(char*);
 struct list_elem* searchListIndex(struct list*, int);
-void listPush(int);
-void listFrontBack(int);
-void listPop(int);
-void listMinMax(int);
 bool lessList(const struct list_elem*, const struct list_elem*, void*);
+bool lessHash(const struct hash_elem*, const struct hash_elem*, void*);
+unsigned hashFunc(const struct hash_elem*, void*);
+struct hash* findHash(char*);
+void squareHashAction(struct hash_elem*, void*);
+void tripleHashAction(struct hash_elem*, void*);
+void destructHashAction(struct hash_elem*, void*);

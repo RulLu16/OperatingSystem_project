@@ -6,33 +6,50 @@ void listCommand(char command[]){
     struct list_elem* e;
     struct list_item* item;
 
+    if(strcmp(command, "list_unique")){
+        scanf("%s", name);
+        list = findList(name);
+
+        if(list==NULL) return;
+    }
+
     if(!strcmp(command, "list_push_back")){
-        listPush(0);
+        int temp;
+        item = (struct list_item*)malloc(sizeof(struct list_item));
+
+        scanf("%d", &temp);
+        item->data = temp;
+
+        list_push_back(list, &(item->elem));
     }
     else if(!strcmp(command, "list_push_front")){
-        listPush(1);
+        int temp;
+        item = (struct list_item*)malloc(sizeof(struct list_item));
+
+        scanf("%d", &temp);
+        item->data = temp;
+
+        list_push_front(list, &(item->elem));
     }
     else if(!strcmp(command, "list_front")){
-        listFrontBack(0);
+        e = list_front(list);
+        printf("%d\n", list_entry(e, struct list_item, elem)->data);
     }
     else if(!strcmp(command, "list_back")){
-        listFrontBack(1);
+        e = list_back(list);
+        printf("%d\n", list_entry(e, struct list_item, elem)->data);
     }
     else if(!strcmp(command, "list_pop_back")){
-        listPop(0);
+        e = list_pop_back(list);
     }
     else if(!strcmp(command, "list_pop_front")){
-        listPop(1);
+        e = list_pop_front(list);
     }
     else if(!strcmp(command, "list_insert")){
         item=(struct list_item*)malloc(sizeof(struct list_item));
         int position, value;
 
-        scanf("%s", name);
         scanf("%d %d",&position, &value);
-        list=findList(name);
-
-        if(list==NULL) return;
 
         e=searchListIndex(list, position);
         item->data=value;
@@ -43,69 +60,44 @@ void listCommand(char command[]){
         item=(struct list_item*)malloc(sizeof(struct list_item));
         int value;
 
-        scanf("%s %d", name, &value);
-        list=findList(name);
+        scanf("%d", &value);
         item->data=value;
+        list_sort(list, lessList, NULL);
+        list_insert_ordered(list, &(item->elem), lessList, NULL);
         
-        if(list!=NULL){
-            list_sort(list, lessList, NULL);
-            list_insert_ordered(list, &(item->elem), lessList, NULL);
-        }
     }
     else if(!strcmp(command, "list_empty")){
-        scanf("%s",name);
-        list=findList(name);
-
-        if(list!=NULL){
-            if(list_empty(list))
-              printf("true\n");
-            else
-              printf("false\n");
-        }
+        if(list_empty(list))
+          printf("true\n");
+        else
+          printf("false\n");
     }
     else if(!strcmp(command, "list_size")){
-        scanf("%s",name);
-        list=findList(name);
-
-        if(list!=NULL)
-          printf("%d\n",(int)list_size(list));
+        printf("%zu\n",list_size(list));
     }
     else if(!strcmp(command, "list_max")){
-        listMinMax(0);
+        e = list_max(list, lessList, NULL);
+        printf("%d\n", list_entry(e, struct list_item, elem)->data);
     }
     else if(!strcmp(command, "list_min")){
-        listMinMax(1);
+        e = list_min(list, lessList, NULL);
+        printf("%d\n", list_entry(e, struct list_item, elem)->data);
     }
     else if(!strcmp(command, "list_remove")){
         int position;
-        scanf("%s %d",name, &position);
-        list=findList(name);
 
-        if(list!=NULL){
-            e=searchListIndex(list, position);
-            list_remove(e);
-        }
+        scanf("%d",&position);
+        e=searchListIndex(list, position);
+        list_remove(e);
     }
     else if(!strcmp(command, "list_reverse")){
-        scanf("%s",name);
-        list=findList(name);
-
-        if(list!=NULL)
-          list_reverse(list);
+        list_reverse(list);
     }
     else if(!strcmp(command, "list_shuffle")){
-        scanf("%s", name);
-        list=findList(name);
-
-        if(list!=NULL)
-          list_shuffle(list);
+        list_shuffle(list);
     }
     else if(!strcmp(command, "list_sort")){
-        scanf("%s",name);
-        list=findList(name);
-
-        if(list!=NULL)
-            list_sort(list, lessList, NULL);
+        list_sort(list, lessList, NULL);
     }
     else if(!strcmp(command, "list_splice")){
         int start, end, position;
@@ -114,12 +106,11 @@ void listCommand(char command[]){
         struct list_elem* last;
         struct list* target;
 
-        scanf("%s %d",name,&position);
+        scanf("%d", &position);
         scanf("%s %d %d",targetName, &start, &end);
-        list=findList(name);
         target=findList(targetName);
 
-        if(list!=NULL && target!=NULL){
+        if(target!=NULL){
             e=searchListIndex(list, position);
             first=searchListIndex(target, start);
             last=searchListIndex(target, end);
@@ -132,16 +123,11 @@ void listCommand(char command[]){
         int first, second;
         struct list_elem* target;
 
-        scanf("%s",name);
         scanf("%d %d",&first, &second);
-        list=findList(name);
+        e=searchListIndex(list, first);
+        target=searchListIndex(list, second);
 
-        if(list!=NULL){
-            e=searchListIndex(list, first);
-            target=searchListIndex(list, second);
-
-            list_swap(e, target);
-        }
+        list_swap(e, target);
     }
     else if(!strcmp(command, "list_unique")){
         char tok[2*MAX_NAME_LENGTH+1];
@@ -167,22 +153,69 @@ void listCommand(char command[]){
 }
 
 void hashCommand(char command[]){
+    char* name = (char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
+    struct hash* hash;
+
+    scanf("%s", name);
+    hash = findHash(name);
+
+    if(hash==NULL) return;
     
     if(!strcmp(command, "hash_insert")){
+        int value;
+
+        scanf("%d",&value);
+        struct hash_item* item = (struct hash_item*)malloc(sizeof(struct hash_item));
+        item->data = value;
+        hash_insert(hash, &(item->elem));
     }
     else if(!strcmp(command, "hash_apply")){
+        char condition[10];
+
+        scanf("%s",condition);
+        if(!strcmp(condition, "square"))
+           hash_apply(hash, squareHashAction);
+        else if(!strcmp(condition, "triple"))
+          hash_apply(hash, tripleHashAction);
     }
     else if(!strcmp(command, "hash_delete")){
+        int value;
+        
+        scanf("%d",&value);
+        struct hash_item* item = (struct hash_item*)malloc(sizeof(struct hash_item));
+        item->data = value;
+        hash_delete(hash, &(item->elem));     
     }
     else if(!strcmp(command, "hash_empty")){
+        if(hash_empty(hash))
+          printf("true\n");
+        else
+          printf("false\n");
     }
     else if(!strcmp(command, "hash_size")){
+        printf("%zu\n",hash_size(hash));
     }
     else if(!strcmp(command, "hash_clear")){
+        hash_clear(hash, destructHashAction);
     }
     else if(!strcmp(command, "hash_find")){
+        int value;
+
+        scanf("%d",&value);
+        struct hash_item* item = (struct hash_item*)malloc(sizeof(struct hash_item));
+        item->data = value;
+        struct hash_elem* e = hash_find(hash, &(item->elem));
+
+        if(e!=NULL)
+          printf("%d\n",hash_entry(e, struct hash_item, elem)->data);
     }
     else if(!strcmp(command, "hash_replace")){
+        int value;
+
+        scanf("%d",&value);
+        struct hash_item* item = (struct hash_item*)malloc(sizeof(struct hash_item));
+        item->data = value;
+        hash_replace(hash, &(item->elem));
     }
 }
 
@@ -242,82 +275,6 @@ struct list_elem* searchListIndex(struct list* list, int index){
     return e;
 }
 
-void listPush(int idx){
-    struct list* list;
-    struct list_item* item=(struct list_item*)malloc(sizeof(struct list_item));
-    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
-    int temp;
-
-    scanf("%s %d",name, &temp);
-    list=findList(name);
-
-    if(list==NULL) return;
-
-    item->data=temp;
-    if(idx)
-      list_push_front(list, &(item->elem));
-    else
-      list_push_back(list, &(item->elem));
-}
-
-void listFrontBack(int idx){
-    struct list* list;
-    struct list_elem* e;
-    struct list_item* item;
-    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
-
-    scanf("%s",name);
-    list=findList(name);
-
-    if(list!=NULL){
-        if(idx)
-          e=list_back(list);
-        else
-          e=list_front(list);
-    }
-    else return;
-        
-    item=list_entry(e, struct list_item, elem);
-    printf("%d\n",item->data);
-}
-
-void listPop(int idx){
-    struct list* list;
-    struct list_elem* e;
-    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
-
-    scanf("%s",name);
-    list=findList(name);
-
-    if(list!=NULL){
-        if(idx)
-          e=list_pop_front(list);
-        else
-          e=list_pop_back(list);
-    }
-    else return;
-}
-
-void listMinMax(int idx){
-    struct list* list;
-    struct list_elem* e;
-    struct list_item* item=(struct list_item*)malloc(sizeof(struct list_item));
-    char* name=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
-
-    scanf("%s",name);
-    list=findList(name);
-
-    if(list!=NULL){
-        if(idx)
-          e=list_min(list, lessList, NULL);
-        else
-          e=list_max(list, lessList, NULL);
-
-        item=list_entry(e,struct list_item, elem);
-        printf("%d\n",item->data);
-    }
-}
-
 bool lessList(const struct list_elem* a, const struct list_elem* b, void* aux){
     struct list_item* itema=list_entry(a, struct list_item, elem);
     struct list_item* itemb=list_entry(b, struct list_item, elem);
@@ -325,8 +282,42 @@ bool lessList(const struct list_elem* a, const struct list_elem* b, void* aux){
     return itema->data < itemb->data;
 }
 
+bool lessHash(const struct hash_elem* a, const struct hash_elem* b, void* aux){
+    struct hash_item* itema = hash_entry(a, struct hash_item, elem);
+    struct hash_item* itemb = hash_entry(b, struct hash_item, elem);
+
+    return itema->data < itemb->data;
+}
+
+unsigned hashFunc(const struct hash_elem* e, void* aux){
+    return hash_int((int)hash_entry(e, struct hash_item, elem)->data);
+}
+
+struct hash* findHash(char* name){
+    for(int i=0;i<10;i++){
+        if(!strcmp(testHash[i].name, name))
+          return testHash[i].start;
+    }
+
+    return NULL;
+}
+
+void squareHashAction(struct hash_elem* e, void* aux){
+    struct hash_item* item = hash_entry(e, struct hash_item, elem);
+    item->data = item->data * item->data;
+}
+
+void tripleHashAction(struct hash_elem* e, void* aux){
+    struct hash_item* item = hash_entry(e, struct hash_item, elem);
+    item->data = item->data * item->data * item->data;
+}
+
+void destructHashAction(struct hash_elem* e, void* aux){
+    struct hash_item* item = hash_entry(e, struct hash_item, elem);
+    free(item);
+}
+
 int main(){
-    int i,j;
     char command[MAX_COMMAND_LENGTH];
     char commandCopy[MAX_COMMAND_LENGTH];
     char kind[MAX_KIND_LENGTH];
@@ -346,7 +337,7 @@ int main(){
 
             if(!strcmp(kind, "list")){
                 scanf("%s",name);
-                for(i=0;i<10;i++){
+                for(int i=0;i<10;i++){
                     if(testList[i].start==NULL){
                         strcpy(testList[i].name, name);
                         testList[i].start=(struct list*)malloc(sizeof(struct list));
@@ -358,11 +349,30 @@ int main(){
             }
             //============ create list =======
 
-            else if(!strcmp(kind, "hash")){
+            else if(!strcmp(kind, "hashtable")){
+                scanf("%s", name);
+                for(int i=0;i<10;i++){
+                    if(testHash[i].start == NULL){
+                        strcpy(testHash[i].name, name);
+                        testHash[i].start = (struct hash*)malloc(sizeof(struct hash));
+                        hash_init(testHash[i].start, hashFunc, lessHash, NULL);
+                        break;
+                    }
+                }
             }
             //============ create hash =======
 
             else if(!strcmp(kind, "bitmap")){
+                size_t size;
+                scanf("%s %zu",name, &size);
+
+                for(int i=0;i<10;i++){
+                    if(testBitmap[i].start==NULL){
+                        strcpy(testBitmap[i].name, name);
+                        testBitmap[i].start = bitmap_create(size);
+                        break;
+                    }
+                }
             }
             //============ create bitmap =====
         }
@@ -374,20 +384,22 @@ int main(){
             scanf("%s",name);
 
             list=findList(name);
-           // hash=findHash(name);
+            hash=findHash(name);
             //bitmap=findBitmap(name);
             if(list!=NULL){
-                struct list_elem* begin=list_begin(list);
-                struct list_elem* end=list_end(list);
-                struct list_item* item;
-                
-                for(struct list_elem* e=begin; e!=end; e=list_next(e)){
-                    item=list_entry(e, struct list_item, elem);
+                for(struct list_elem* e=list_begin(list); e!=list_end(list); e=list_next(e)){
+                    struct list_item* item=list_entry(e, struct list_item, elem);
                     printf("%d ",item->data);
                 }
                 printf("\n");
             }
             else if(hash!=NULL){
+                struct hash_iterator* it = (struct hash_iterator*)malloc(sizeof(struct hash_iterator));
+                hash_first(it, hash);
+                for(it;hash_next(it)!=NULL;){
+                    printf("%d ", hash_entry(it->elem, struct hash_item, elem)->data);
+                }
+                printf("\n");
             }
             else if(bitmap!=NULL){
             }
