@@ -101,8 +101,6 @@ void listCommand(char command[]){
     else if(!strcmp(command, "list_splice")){
         int start, end, position;
         char* targetName=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
-        struct list_elem* first;
-        struct list_elem* last;
         struct list* target;
 
         scanf("%d", &position);
@@ -111,19 +109,18 @@ void listCommand(char command[]){
 
         if(target!=NULL){
             e=searchListIndex(list, position);
-            first=searchListIndex(target, start);
-            last=searchListIndex(target, end);
+            struct list_elem* first=searchListIndex(target, start);
+            struct list_elem* last=searchListIndex(target, end);
 
             list_splice(e, first, last);
         }
     }
     else if(!strcmp(command, "list_swap")){
         int first, second;
-        struct list_elem* target;
 
         scanf("%d %d",&first, &second);
         e=searchListIndex(list, first);
-        target=searchListIndex(list, second);
+        struct list_elem* target=searchListIndex(list, second);
 
         list_swap(e, target);
     }
@@ -277,10 +274,14 @@ void bitmapCommand(char command[]){
         bitmap_dump(bitmap);
     }
     else if(!strcmp(command, "bitmap_expand")){
-        int size;
+        int size, i;
 
         scanf("%d",&size);
-        bitmap = bitmap_expand(bitmap, size);
+        for(i=0;i<10;i++){
+            if(!strcmp(testBitmap[i].name, name))
+              break;
+        }
+        testBitmap[i].start = bitmap_expand(testBitmap[i].start, size);
     }
     else if(!strcmp(command, "bitmap_flip")){
         scanf("%zu", &start);
@@ -426,6 +427,7 @@ struct bitmap* findBitmap(char* name){
 
 
 int main(){
+    int i;
     char command[MAX_COMMAND_LENGTH];
     char commandCopy[MAX_COMMAND_LENGTH];
     char kind[MAX_KIND_LENGTH];
@@ -458,7 +460,7 @@ int main(){
 
             else if(!strcmp(kind, "hashtable")){
                 scanf("%s", name);
-                for(int i=0;i<10;i++){
+                for(i=0;i<10;i++){
                     if(testHash[i].start == NULL){
                         strcpy(testHash[i].name, name);
                         testHash[i].start = (struct hash*)malloc(sizeof(struct hash));
@@ -473,7 +475,7 @@ int main(){
                 size_t size;
                 scanf("%s %zu",name, &size);
 
-                for(int i=0;i<10;i++){
+                for(i=0;i<10;i++){
                     if(testBitmap[i].start==NULL){
                         strcpy(testBitmap[i].name, name);
                         testBitmap[i].start = bitmap_create(size);
@@ -509,7 +511,7 @@ int main(){
                 printf("\n");
             }
             else if(bitmap!=NULL){
-                for(int i=0;i<(int)bitmap_size(bitmap);i++)
+                for(i=0;i<(int)bitmap_size(bitmap);i++)
                   printf("%d",(int)bitmap_test(bitmap, (size_t)i));
                 printf("\n");
             }
@@ -518,7 +520,6 @@ int main(){
             struct list* list;
             struct hash* hash;
             struct bitmap* bitmap;
-            int idx;
 
             scanf("%s",name);
 
@@ -526,37 +527,31 @@ int main(){
             hash=findHash(name);
             bitmap=findBitmap(name);
             if(list!=NULL){
-                for(int i=0;i<10;i++){
-                    if(!strcmp(testList[i].name, name)){
-                        idx = i;
-                        break;
-                    }
+                for(i=0;i<10;i++){
+                    if(!strcmp(testList[i].name, name))
+                      break;
                 }
                 for(struct list_elem* e = list_begin(list); e!=list_end(list); e = list_remove(e));
-                testList[idx].start = NULL; 
-                strcpy(testList[idx].name, "");
+                testList[i].start = NULL; 
+                strcpy(testList[i].name, "");
             }
             else if(hash!=NULL){
-                for(int i=0;i<10;i++){
-                    if(!strcmp(testHash[i].name, name)){
-                        idx = i;
-                        break;
-                    }
+                for(i=0;i<10;i++){
+                    if(!strcmp(testHash[i].name, name))
+                      break;
                 }
                 hash_destroy(hash, destructHashAction);
-                testHash[idx].start = NULL;
-                strcpy(testHash[idx].name, "");
+                testHash[i].start = NULL;
+                strcpy(testHash[i].name, "");
             }
             else if(bitmap!=NULL){
-                for(int i=0;i<10;i++){
-                    if(!strcmp(testBitmap[i].name, name)){
-                        idx = i;
-                        break;
-                    }
+                for(i=0;i<10;i++){
+                    if(!strcmp(testBitmap[i].name, name))
+                      break;
                 }
                 bitmap_destroy(bitmap);
-                testBitmap[idx].start = NULL;
-                strcpy(testBitmap[idx].name, "");
+                testBitmap[i].start = NULL;
+                strcpy(testBitmap[i].name, "");
             }
         }
         //====== list command start ========

@@ -377,4 +377,12 @@ bitmap_dump (const struct bitmap *b)
 /* User defined function */
 struct bitmap* 
 bitmap_expand(struct bitmap* bitmap, int size){
+    struct bitmap* new = bitmap_create(bitmap->bit_cnt + (size_t)size);
+
+    for(size_t i=0;i<bitmap->bit_cnt;i++){
+        if(bitmap_test(bitmap, i))
+          bitmap_mark(new, i);
+    }
+
+    return new;
 }
