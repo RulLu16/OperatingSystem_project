@@ -309,16 +309,49 @@ void bitmapCommand(char command[]){
           printf("%zu\n",bitmap_scan(bitmap, start, cnt, false));
     }
     else if(!strcmp(command, "bitmap_scan_and_flip")){
+        scanf("%zu %zu",&start, &cnt);
+        scanf("%s", boolean);
+
+        if(!strcmp(boolean, "true"))
+          printf("%zu\n", bitmap_scan_and_flip(bitmap, start, cnt, true));
+        else
+          printf("%zu\n", bitmap_scan_and_flip(bitmap, start, cnt, false));
     }
     else if(!strcmp(command, "bitmap_set")){
+        scanf("%zu %s",&start, boolean);
+
+        if(!strcmp(boolean, "true"))
+          bitmap_set(bitmap, start, true);
+        else
+          bitmap_set(bitmap, start, false);
     }
     else if(!strcmp(command, "bitmap_set_all")){
+        scanf("%s",boolean);
+
+        if(!strcmp(boolean, "true"))
+          bitmap_set_all(bitmap, true);
+        else
+          bitmap_set_all(bitmap, false);
     }
     else if(!strcmp(command, "bitmap_set_multiple")){
+        scanf("%zu %zu",&start, &cnt);
+        scanf("%s", boolean);
+
+        if(!strcmp(boolean, "true"))
+          bitmap_set_multiple(bitmap,start, cnt, true);
+        else
+          bitmap_set_multiple(bitmap,start, cnt, false);
     }
     else if(!strcmp(command, "bitmap_size")){
+        printf("%zu\n",bitmap_size(bitmap));
     }
     else if(!strcmp(command, "bitmap_test")){
+        scanf("%zu", &start);
+
+        if(bitmap_test(bitmap, start))
+          printf("true\n");
+        else
+          printf("false\n");
     }
 }
 
