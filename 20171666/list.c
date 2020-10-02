@@ -533,7 +533,8 @@ list_min (struct list *list, list_less_func *less, void *aux)
 }
 
 /* User defined functions */
-void list_swap (struct list_elem* a, struct list_elem* b){
+void 
+list_swap (struct list_elem* a, struct list_elem* b){
    if(a->next == b){
        list_remove(b);
        list_insert(a,b);
@@ -550,10 +551,9 @@ void list_swap (struct list_elem* a, struct list_elem* b){
    }
 }
 
-void list_shuffle (struct list* list) {
+void 
+list_shuffle (struct list* list) {
     int size=(int)list_size(list);
-    struct list_elem* a;
-    struct list_elem* b;
 
     srand(time(NULL));
     for(int i=0;i<size*2;i++){
@@ -565,8 +565,8 @@ void list_shuffle (struct list* list) {
             continue;
         }
 
-        a=list_begin(list);
-        b=list_begin(list);
+        struct list_elem* a=list_begin(list);
+        struct list_elem* b=list_begin(list);
         for(int j=0;j<first;j++)
           a=list_next(a);
         for(int j=0;j<second;j++)
