@@ -515,8 +515,50 @@ int main(){
             }
         }
         else if(!strcmp(command, "delete")){
-        }
+            struct list* list;
+            struct hash* hash;
+            struct bitmap* bitmap;
+            int idx;
 
+            scanf("%s",name);
+
+            list=findList(name);
+            hash=findHash(name);
+            bitmap=findBitmap(name);
+            if(list!=NULL){
+                for(int i=0;i<10;i++){
+                    if(!strcmp(testList[i].name, name)){
+                        idx = i;
+                        break;
+                    }
+                }
+                for(struct list_elem* e = list_begin(list); e!=list_end(list); e = list_remove(e));
+                testList[idx].start = NULL; 
+                strcpy(testList[idx].name, "");
+            }
+            else if(hash!=NULL){
+                for(int i=0;i<10;i++){
+                    if(!strcmp(testHash[i].name, name)){
+                        idx = i;
+                        break;
+                    }
+                }
+                hash_destroy(hash, destructHashAction);
+                testHash[idx].start = NULL;
+                strcpy(testHash[idx].name, "");
+            }
+            else if(bitmap!=NULL){
+                for(int i=0;i<10;i++){
+                    if(!strcmp(testBitmap[i].name, name)){
+                        idx = i;
+                        break;
+                    }
+                }
+                bitmap_destroy(bitmap);
+                testBitmap[idx].start = NULL;
+                strcpy(testBitmap[idx].name, "");
+            }
+        }
         //====== list command start ========
         else if(!strcmp(commandKind, "list")){
             listCommand(command);
