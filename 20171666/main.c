@@ -101,11 +101,10 @@ void listCommand(char command[]){
     else if(!strcmp(command, "list_splice")){
         int start, end, position;
         char* targetName=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
-        struct list* target;
 
         scanf("%d", &position);
         scanf("%s %d %d",targetName, &start, &end);
-        target=findList(targetName);
+        struct list* target=findList(targetName);
 
         if(target!=NULL){
             e=searchListIndex(list, position);
@@ -127,7 +126,6 @@ void listCommand(char command[]){
     else if(!strcmp(command, "list_unique")){
         char tok[2*MAX_NAME_LENGTH+1];
         char* dup=(char*)malloc(sizeof(char)*MAX_NAME_LENGTH);
-        struct list* dupList;
 
         scanf("%[^\n]s",tok);
         name=strtok(tok, " ");
@@ -139,7 +137,7 @@ void listCommand(char command[]){
               list_unique(list, NULL, lessList, NULL);
         }
         else{
-            dupList=findList(dup);
+            struct list* dupList=findList(dup);
 
             if(list!=NULL && dupList!=NULL)
               list_unique(list, dupList, lessList, NULL);
@@ -425,7 +423,6 @@ struct bitmap* findBitmap(char* name){
     return NULL;
 }
 
-
 int main(){
     int i;
     char command[MAX_COMMAND_LENGTH];
@@ -456,7 +453,7 @@ int main(){
                     }
                 }                        
             }
-            //============ create list =======
+            //====== create list =======
 
             else if(!strcmp(kind, "hashtable")){
                 scanf("%s", name);
@@ -469,7 +466,7 @@ int main(){
                     }
                 }
             }
-            //============ create hash =======
+            //====== create hash =======
 
             else if(!strcmp(kind, "bitmap")){
                 size_t size;
@@ -483,7 +480,7 @@ int main(){
                     }
                 }
             }
-            //============ create bitmap =====
+            //====== create bitmap =====
         }
         else if(!strcmp(command, "dumpdata")){
             struct list* list;
@@ -502,6 +499,7 @@ int main(){
                 }
                 printf("\n");
             }
+            //======= print list ========
             else if(hash!=NULL){
                 struct hash_iterator* it = (struct hash_iterator*)malloc(sizeof(struct hash_iterator));
                 hash_first(it, hash);
@@ -510,11 +508,13 @@ int main(){
                 }
                 printf("\n");
             }
+            //======= print hash ========
             else if(bitmap!=NULL){
                 for(i=0;i<(int)bitmap_size(bitmap);i++)
                   printf("%d",(int)bitmap_test(bitmap, (size_t)i));
                 printf("\n");
             }
+            //======= print bitmap ======
         }
         else if(!strcmp(command, "delete")){
             struct list* list;
@@ -535,6 +535,7 @@ int main(){
                 testList[i].start = NULL; 
                 strcpy(testList[i].name, "");
             }
+            //======== delete list =========
             else if(hash!=NULL){
                 for(i=0;i<10;i++){
                     if(!strcmp(testHash[i].name, name))
@@ -544,6 +545,7 @@ int main(){
                 testHash[i].start = NULL;
                 strcpy(testHash[i].name, "");
             }
+            //======== delete hash =========
             else if(bitmap!=NULL){
                 for(i=0;i<10;i++){
                     if(!strcmp(testBitmap[i].name, name))
@@ -553,16 +555,19 @@ int main(){
                 testBitmap[i].start = NULL;
                 strcpy(testBitmap[i].name, "");
             }
+            //======== delete bitmap =======
         }
-        //====== list command start ========
         else if(!strcmp(commandKind, "list")){
             listCommand(command);
         }
+        //========= list command ========
         else if(!strcmp(commandKind, "hash")){
             hashCommand(command);
         }
+        //========= hash command ========
         else if(!strcmp(commandKind, "bitmap")){
             bitmapCommand(command);
         }
+        //========= bitmap command ======
     }
 }
