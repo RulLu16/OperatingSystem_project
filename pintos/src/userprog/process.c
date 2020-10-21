@@ -98,6 +98,9 @@ process_exit (void)
   struct thread *cur = thread_current ();
   uint32_t *pd;
 
+  /* Print termination messages. */
+  printf("%s: exit(%d)\n", cur->name, cur->status);
+
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
   pd = cur->pagedir;
@@ -304,6 +307,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
   /* Set up stack. */
   if (!setup_stack (esp))
     goto done;
+
+  /* Make up stack. User code!! */
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;

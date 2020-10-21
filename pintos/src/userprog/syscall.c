@@ -18,3 +18,28 @@ syscall_handler (struct intr_frame *f UNUSED)
   printf ("system call!\n");
   thread_exit ();
 }
+
+/* User system call function. */
+void halt(){
+}
+
+void exit(){
+}
+
+void exec(){
+}
+
+void wait(){
+}
+
+void write(){
+}
+
+void read(){
+}
+
+int fibonacci(int n){
+}
+
+int max_of_four_int(int a, int b, int c, int d){
+}
