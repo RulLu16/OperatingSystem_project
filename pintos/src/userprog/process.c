@@ -46,7 +46,7 @@ process_execute (const char *file_name)
 }
 
 /* A thread function that loads a user process and starts it
-   running. */
+running. */
 static void
 start_process (void *file_name_)
 {
@@ -88,6 +88,7 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
+  for(long long int i=0;i<1000000000;i++);
   return -1;
 }
 
@@ -216,7 +217,10 @@ load (const char *file_name, void (**eip) (void), void **esp)
   struct file *file = NULL;
   off_t file_ofs;
   bool success = false;
-  int i;
+  int i; int argc = 0;
+  char file_name_copy[129];
+  char* argv[128] = {0};
+  char* next_ptr;
 
   /* Allocate and activate page directory. */
   t->pagedir = pagedir_create ();
@@ -224,11 +228,20 @@ load (const char *file_name, void (**eip) (void), void **esp)
     goto done;
   process_activate ();
 
+  /* Argument passing. */
+  strlcpy(file_name_copy, file_name, 129);
+  char* ptr = strtok_r(file_name_copy, " ", &next_ptr);
+
+  while(ptr != NULL){
+      argv[argc++] = ptr;
+      ptr = strtok_r(NULL, " ", &next_ptr);
+  }
+
   /* Open executable file. */
-  file = filesys_open (file_name);
+  file = filesys_open (argv[0]);
   if (file == NULL) 
     {
-      printf ("load: %s: open failed\n", file_name);
+      printf ("load: %s: open failed\n", argv[0]);
       goto done; 
     }
 
@@ -241,7 +254,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
       || ehdr.e_phentsize != sizeof (struct Elf32_Phdr)
       || ehdr.e_phnum > 1024) 
     {
-      printf ("load: %s: error loading executable\n", file_name);
+      printf ("load: %s: error loading executable\n", argv[0]);
       goto done; 
     }
 
@@ -363,7 +376,7 @@ validate_segment (const struct Elf32_Phdr *phdr, struct file *file)
      it then user code that passed a null pointer to system calls
      could quite likely panic the kernel by way of null pointer
      assertions in memcpy(), etc. */
-  if (phdr->p_vaddr < PGSIZE)
+  if (phdr->p_offset < PGSIZE)
     return false;
 
   /* It's okay. */
