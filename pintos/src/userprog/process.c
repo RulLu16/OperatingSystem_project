@@ -88,7 +88,7 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  for(long long int i=0;i<1000000000;i++);
+  for(long long int i=0;i<3000000000;i++);
   return -1;
 }
 
@@ -334,27 +334,28 @@ load (const char *file_name, void (**eip) (void), void **esp)
   }
   
   if(totalLen%4 != 0){
-      *esp -= 1;
+      *esp -= 4-(totalLen%4);
       **(uint8_t**)esp = 0;
   }
 
   /* Push addresses. */
   *esp -= 4;
-  strlcpy(*esp, NULL, 4);
+  **(uint8_t**)esp = 0;
 
   for(int i=argc-1;i>=0;i--){
       int length = strlen(argv[i]) + 1;
       *esp -= 4;
       *esp_copy -= length;
 
-      **(uint8_t**)esp = esp_copy;
+      **(uint8_t**)esp = *((uint8_t*)esp_copy);
   }
 
   /* Push extra. */
-  **(uint8_t**)(esp-4) = esp;
-  *esp -= 8;
+  *esp -= 4;
+  **(uint8_t**)esp = *((uint8_t*)esp) + 4;
 
   /* Push argc. */
+  *esp -= 4;
   **(uint8_t**)esp = argc;
 
   /* Push return address. */
@@ -363,6 +364,9 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;
+
+  // test
+  hex_dump((uintptr_t)*esp,*esp,100,true);
 
   success = true;
 
@@ -414,7 +418,7 @@ validate_segment (const struct Elf32_Phdr *phdr, struct file *file)
      it then user code that passed a null pointer to system calls
      could quite likely panic the kernel by way of null pointer
      assertions in memcpy(), etc. */
-  if (phdr->p_offset < PGSIZE)
+  if (phdr->p_vaddr < PGSIZE)
     return false;
 
   /* It's okay. */
