@@ -217,7 +217,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   struct file *file = NULL;
   off_t file_ofs;
   bool success = false;
-  int i; int argc = 0;
+  int i; int argc = 0; int totalLen = 0;
   char file_name_copy[129];
   char* argv[128] = {0};
   char* next_ptr;
@@ -321,7 +321,45 @@ load (const char *file_name, void (**eip) (void), void **esp)
   if (!setup_stack (esp))
     goto done;
 
-  /* Make up stack. User code!! */
+  /* Make up stack. */
+  /* Push arguments. */
+  void** esp_copy = esp;
+
+  for(int i=argc-1;i>=0;i--){
+      int length = strlen(argv[i]) + 1;
+      *esp -= length;
+      totalLen += length;
+      
+      strlcpy(*esp, argv[i], length);
+  }
+  
+  if(totalLen%4 != 0){
+      *esp -= 1;
+      **(uint8_t**)esp = 0;
+  }
+
+  /* Push addresses. */
+  *esp -= 4;
+  strlcpy(*esp, NULL, 4);
+
+  for(int i=argc-1;i>=0;i--){
+      int length = strlen(argv[i]) + 1;
+      *esp -= 4;
+      *esp_copy -= length;
+
+      **(uint8_t**)esp = esp_copy;
+  }
+
+  /* Push extra. */
+  **(uint8_t**)(esp-4) = esp;
+  *esp -= 8;
+
+  /* Push argc. */
+  **(uint8_t**)esp = argc;
+
+  /* Push return address. */
+  *esp -= 4;
+  **(uint8_t**)esp = 0;
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;
