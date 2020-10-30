@@ -19,6 +19,10 @@ typedef int mapid_t;
 #define EXIT_SUCCESS 0          /* Successful execution. */
 #define EXIT_FAILURE 1          /* Unsuccessful execution. */
 
+/* Projects 1 user system call. */
+int fibonacci(int n);
+int max_of_four_int(int a, int b, int c, int d);
+
 /* Projects 2 and later. */
 void halt (void) NO_RETURN;
 void exit (int status) NO_RETURN;

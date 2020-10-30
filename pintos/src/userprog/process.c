@@ -366,7 +366,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   *eip = (void (*) (void)) ehdr.e_entry;
 
   // test
-  hex_dump((uintptr_t)*esp,*esp,100,true);
+  //hex_dump((uintptr_t)*esp,*esp,100,true);
 
   success = true;
 
