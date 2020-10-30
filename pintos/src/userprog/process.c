@@ -94,7 +94,7 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  for(long long int i=0;i<2000000000;i++);
+  for(long long int i=0;i<1000000000;i++);
   return -1;
 }
 
@@ -222,8 +222,8 @@ load (const char *file_name, void (**eip) (void), void **esp)
   bool success = false;
   int i; int argc = 0; int totalLen = 0;
   char file_name_copy[129];
-  char* argv[128] = {0};
-  char* argv_addr[128] = {0};
+  char* argv[129] = {0};
+  char* argv_addr[129] = {0};
   char* next_ptr;
 
   /* Allocate and activate page directory. */
@@ -368,7 +368,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   *eip = (void (*) (void)) ehdr.e_entry;
 
   // test
-  hex_dump((uintptr_t)*esp,*esp,100,true);
+  //hex_dump((uintptr_t)*esp,*esp,100,true);
 
   success = true;
 

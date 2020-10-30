@@ -3,6 +3,7 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "userprog/process.h"
 
 static void syscall_handler (struct intr_frame *);
 
@@ -15,23 +16,34 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED) 
 {
-  switch(*(uint32_t*)f->esp){
+  //hex_dump(f->esp, f->esp, 200, 1);
+  switch(*(int*)f->esp){
     case SYS_HALT:
-      halt();
+      sys_halt();
       break;
     case SYS_EXIT:
+      sys_exit(*(int*)(f->esp + 4));
       break;
     case SYS_EXEC:
+      f->eax = sys_exec(*(const char**)(f->esp + 4));
       break;
     case SYS_WAIT:
+      f->eax = sys_wait(*(pid_t*)(f->esp + 4));
       break;
     case SYS_READ:
+      f->eax = sys_read(*(uint32_t*)(f->esp + 4), (void*)*(uint32_t*)(f->esp + 8), \
+                     (unsigned)*(uint32_t*)(f->esp + 12));
       break;
     case SYS_WRITE:
+      f->eax = sys_write(*(uint32_t*)(f->esp + 4), (void*)*(uint32_t*)(f->esp + 8), \
+                     (unsigned)*(uint32_t*)(f->esp + 12));
       break;
     case SYS_FIBONACCI:
+      f->eax = fibonacci(*(int*)(f->esp + 4));
       break;
     case SYS_MAXOFFOURINT:
+      f->eax = max_of_four_int(*(int*)(f->esp + 4), *(int*)(f->esp + 8), \
+                     *(int*)(f->esp + 12), *(int*)(f->esp + 16));
       break;
   }
 
@@ -39,24 +51,45 @@ syscall_handler (struct intr_frame *f UNUSED)
 }
 
 /* User system call function. */
-void halt(){
-    printf("halt!!\n");
+void sys_halt(void){
     shutdown_power_off();
 }
 
-void exit(int status){
+void sys_exit(int status){
+    printf("%s: exit(%d)\n", thread_name(), status);
+
+    thread_exit();
 }
 
-pid_t exec(const char* cmd_line){
+pid_t sys_exec(const char* cmd_line){
+    return process_execute(cmd_line);
 }
 
-int wait(pid_t pid){
+int sys_wait(pid_t pid){
+    return process_wait(pid);
 }
 
-int read(int fd, void* buffer, unsigned size){
+int sys_read(int fd, void* buffer, unsigned size){
+    int i;
+
+    if(fd == 0){
+        for(i=0;i<(int)size;i++){
+            *(uint8_t*)(buffer + i) = input_getc();
+        }
+
+        if(i!=(int)size) return -1;
+        else return size;
+    }
+
+    return -1;
 }
 
-int write(int fd, const void* buffer, unsigned size){
+int sys_write(int fd, const void* buffer, unsigned size){
+    if(fd == 1){
+        putbuf(buffer, size);
+        return size;
+    }
+    else return -1;
 }
 
 int fibonacci(int n){
