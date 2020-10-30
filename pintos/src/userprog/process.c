@@ -94,7 +94,7 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  for(long long int i=0;i<3000000000;i++);
+  for(long long int i=0;i<2000000000;i++);
   return -1;
 }
 
@@ -104,9 +104,6 @@ process_exit (void)
 {
   struct thread *cur = thread_current ();
   uint32_t *pd;
-
-  /* Print termination messages. */
-  printf("%s: exit(%d)\n", cur->name, cur->status);
 
   /* Destroy the current process's page directory and switch back
      to the kernel-only page directory. */
@@ -226,6 +223,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   int i; int argc = 0; int totalLen = 0;
   char file_name_copy[129];
   char* argv[128] = {0};
+  char* argv_addr[128] = {0};
   char* next_ptr;
 
   /* Allocate and activate page directory. */
@@ -329,19 +327,20 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /* Make up stack. */
   /* Push arguments. */
-  void** esp_copy = esp;
-
   for(int i=argc-1;i>=0;i--){
       int length = strlen(argv[i]) + 1;
       *esp -= length;
       totalLen += length;
       
       strlcpy(*esp, argv[i], length);
+      argv_addr[i] = (char*)(*esp);
   }
   
   if(totalLen%4 != 0){
-      *esp -= 4-(totalLen%4);
-      **(uint8_t**)esp = 0;
+      for(int i=0;i<4-(totalLen%4);i++){
+          *esp -= 1;
+          **(uint8_t**)esp = 0;
+      }
   }
 
   /* Push addresses. */
@@ -349,16 +348,13 @@ load (const char *file_name, void (**eip) (void), void **esp)
   **(uint8_t**)esp = 0;
 
   for(int i=argc-1;i>=0;i--){
-      int length = strlen(argv[i]) + 1;
       *esp -= 4;
-      *esp_copy -= length;
-
-      **(uint8_t**)esp = *((uint8_t*)esp_copy);
+      *((char**)*esp) = argv_addr[i];
   }
 
   /* Push extra. */
   *esp -= 4;
-  **(uint8_t**)esp = *((uint8_t*)esp) + 4;
+  *((char**)*esp) = (*esp) + 4;
 
   /* Push argc. */
   *esp -= 4;
@@ -372,7 +368,7 @@ load (const char *file_name, void (**eip) (void), void **esp)
   *eip = (void (*) (void)) ehdr.e_entry;
 
   // test
-  //hex_dump((uintptr_t)*esp,*esp,100,true);
+  hex_dump((uintptr_t)*esp,*esp,100,true);
 
   success = true;
 

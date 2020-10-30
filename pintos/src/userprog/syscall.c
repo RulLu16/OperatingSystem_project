@@ -40,6 +40,8 @@ syscall_handler (struct intr_frame *f UNUSED)
 
 /* User system call function. */
 void halt(){
+    printf("halt!!\n");
+    shutdown_power_off();
 }
 
 void exit(int status){
