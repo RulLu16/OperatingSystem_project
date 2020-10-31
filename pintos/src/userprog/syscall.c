@@ -3,6 +3,7 @@
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
+#include "threads/vaddr.h"
 #include "userprog/process.h"
 
 static void syscall_handler (struct intr_frame *);
@@ -22,32 +23,48 @@ syscall_handler (struct intr_frame *f UNUSED)
       sys_halt();
       break;
     case SYS_EXIT:
+      addr_check(f->esp + 4);
       sys_exit(*(int*)(f->esp + 4));
       break;
     case SYS_EXEC:
+      addr_check(f->esp + 4);
       f->eax = sys_exec(*(const char**)(f->esp + 4));
       break;
     case SYS_WAIT:
+      addr_check(f->esp + 4);
       f->eax = sys_wait(*(pid_t*)(f->esp + 4));
       break;
     case SYS_READ:
+      addr_check(f->esp + 4);
+      addr_check(f->esp + 8);
+      addr_check(f->esp + 12);
       f->eax = sys_read(*(uint32_t*)(f->esp + 4), (void*)*(uint32_t*)(f->esp + 8), \
                      (unsigned)*(uint32_t*)(f->esp + 12));
       break;
     case SYS_WRITE:
+      addr_check(f->esp + 4);
+      addr_check(f->esp + 8);
+      addr_check(f->esp + 12);
       f->eax = sys_write(*(uint32_t*)(f->esp + 4), (void*)*(uint32_t*)(f->esp + 8), \
                      (unsigned)*(uint32_t*)(f->esp + 12));
       break;
     case SYS_FIBONACCI:
+      addr_check(f->esp + 4);
       f->eax = fibonacci(*(int*)(f->esp + 4));
       break;
     case SYS_MAXOFFOURINT:
+      addr_check(f->esp + 4);
       f->eax = max_of_four_int(*(int*)(f->esp + 4), *(int*)(f->esp + 8), \
                      *(int*)(f->esp + 12), *(int*)(f->esp + 16));
       break;
   }
 
   //thread_exit ();
+}
+
+void addr_check(const void* addr){
+    if(addr == NULL || is_kernel_vaddr(addr))
+      sys_exit(-1);
 }
 
 /* User system call function. */

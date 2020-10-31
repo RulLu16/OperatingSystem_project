@@ -7,6 +7,7 @@
 void syscall_init (void);
 
 /* User system call function. */
+void addr_check(const void*);
 void sys_halt(void);
 void sys_exit(int);
 pid_t sys_exec(const char*);
