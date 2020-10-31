@@ -41,6 +41,7 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
+  /* Passing the file_name and check. */
   strlcpy(name_copy, file_name, 129);
   thread_name = strtok_r(name_copy, " ", &next_ptr);
 
@@ -96,19 +97,18 @@ start_process (void *file_name_)
 int
 process_wait (tid_t child_tid UNUSED) 
 {
-  struct thread* t = NULL;
   int exit_status;
 
   for(struct list_elem* e = list_begin(&(thread_current()->child)); \
       e!= list_end(&(thread_current()->child)); e=list_next(e)){
 
-      t = list_entry(e, struct thread, child_elem);
+      struct thread* t = list_entry(e, struct thread, child_elem);
 
       if(child_tid == t->tid){
-          sema_down(&(t->child_lock));
-          exit_status = t->exit_status;
-          list_remove(&(t->child_elem));
-          sema_up(&(t->clean_lock));
+          sema_down(&(t->child_lock));    // lock until child thread is done.
+          exit_status = t->exit_status; 
+          list_remove(&(t->child_elem));  // remove child's useless memory.
+          sema_up(&(t->clean_lock));      // lock for clean memory.
 
           return exit_status;
       }
@@ -389,9 +389,6 @@ load (const char *file_name, void (**eip) (void), void **esp)
 
   /* Start address. */
   *eip = (void (*) (void)) ehdr.e_entry;
-
-  // test
-  //hex_dump((uintptr_t)*esp,*esp,100,true);
 
   success = true;
 

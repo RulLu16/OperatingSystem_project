@@ -93,7 +93,7 @@ int sys_read(int fd, void* buffer, unsigned size){
             *(uint8_t*)(buffer + i) = input_getc();
         }
 
-        if(i!=(int)size) return -1;
+        if(i != (int)size) return -1; // Bad read.
         else return size;
     }
 
