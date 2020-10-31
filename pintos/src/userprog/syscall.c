@@ -16,7 +16,7 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED) 
 {
-  //hex_dump(f->esp, f->esp, 200, 1);
+  //hex_dump((uintptr_t)f->esp, f->esp, 200, 1);
   switch(*(int*)f->esp){
     case SYS_HALT:
       sys_halt();
@@ -47,7 +47,7 @@ syscall_handler (struct intr_frame *f UNUSED)
       break;
   }
 
-  thread_exit ();
+  //thread_exit ();
 }
 
 /* User system call function. */
@@ -57,7 +57,6 @@ void sys_halt(void){
 
 void sys_exit(int status){
     printf("%s: exit(%d)\n", thread_name(), status);
-
     thread_exit();
 }
 
