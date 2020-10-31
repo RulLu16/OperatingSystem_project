@@ -17,43 +17,41 @@ syscall_init (void)
 static void
 syscall_handler (struct intr_frame *f UNUSED) 
 {
-  //hex_dump((uintptr_t)f->esp, f->esp, 200, 1);
+  if(*(int*)f->esp != SYS_HALT)
+    addr_check(f->esp + 4);
+  
   switch(*(int*)f->esp){
     case SYS_HALT:
       sys_halt();
       break;
     case SYS_EXIT:
-      addr_check(f->esp + 4);
       sys_exit(*(int*)(f->esp + 4));
       break;
     case SYS_EXEC:
-      addr_check(f->esp + 4);
-      f->eax = sys_exec(*(const char**)(f->esp + 4));
+      f->eax = sys_exec((const char*)*(uint32_t*)(f->esp + 4));
       break;
     case SYS_WAIT:
-      addr_check(f->esp + 4);
       f->eax = sys_wait(*(pid_t*)(f->esp + 4));
       break;
     case SYS_READ:
-      addr_check(f->esp + 4);
       addr_check(f->esp + 8);
       addr_check(f->esp + 12);
       f->eax = sys_read(*(uint32_t*)(f->esp + 4), (void*)*(uint32_t*)(f->esp + 8), \
                      (unsigned)*(uint32_t*)(f->esp + 12));
       break;
     case SYS_WRITE:
-      addr_check(f->esp + 4);
       addr_check(f->esp + 8);
       addr_check(f->esp + 12);
       f->eax = sys_write(*(uint32_t*)(f->esp + 4), (void*)*(uint32_t*)(f->esp + 8), \
                      (unsigned)*(uint32_t*)(f->esp + 12));
       break;
     case SYS_FIBONACCI:
-      addr_check(f->esp + 4);
       f->eax = fibonacci(*(int*)(f->esp + 4));
       break;
     case SYS_MAXOFFOURINT:
-      addr_check(f->esp + 4);
+      addr_check(f->esp + 8);
+      addr_check(f->esp + 12);
+      addr_check(f->esp + 16);
       f->eax = max_of_four_int(*(int*)(f->esp + 4), *(int*)(f->esp + 8), \
                      *(int*)(f->esp + 12), *(int*)(f->esp + 16));
       break;
@@ -62,6 +60,7 @@ syscall_handler (struct intr_frame *f UNUSED)
   //thread_exit ();
 }
 
+/* Check if addr is in user address space. */
 void addr_check(const void* addr){
     if(addr == NULL || is_kernel_vaddr(addr))
       sys_exit(-1);
@@ -74,6 +73,7 @@ void sys_halt(void){
 
 void sys_exit(int status){
     printf("%s: exit(%d)\n", thread_name(), status);
+    thread_current()->exit_status = status;
     thread_exit();
 }
 

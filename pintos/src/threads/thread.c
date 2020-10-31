@@ -467,6 +467,12 @@ init_thread (struct thread *t, const char *name, int priority)
   old_level = intr_disable ();
   list_push_back (&all_list, &t->allelem);
   intr_set_level (old_level);
+
+  /* Init semaphore lock. */
+  sema_init(&(t->child_lock), 0);
+  sema_init(&(t->clean_lock), 0);
+  list_init(&(t->child));
+  list_push_back(&(running_thread()->child), &(t->child_elem));
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
