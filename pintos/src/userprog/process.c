@@ -44,6 +44,8 @@ process_execute (const char *file_name)
   strlcpy(name_copy, file_name, 129);
   thread_name = strtok_r(name_copy, " ", &next_ptr);
 
+  if(filesys_open(thread_name) == NULL) return -1;
+
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
