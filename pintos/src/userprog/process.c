@@ -98,9 +98,14 @@ int
 process_wait (tid_t child_tid UNUSED) 
 {
   int exit_status;
+  struct thread* cur = thread_current();
 
-  for(struct list_elem* e = list_begin(&(thread_current()->child)); \
-      e!= list_end(&(thread_current()->child)); e=list_next(e)){
+  /* Check child_tid. */
+  if(child_tid == TID_ERROR) return -1;
+  if(child_tid < 0) return -1;
+
+  /* Search child thread and wait using semaphore. */
+  for(struct list_elem* e = list_begin(&(cur->child));e != list_end(&(cur->child)); e=list_next(e)){
 
       struct thread* t = list_entry(e, struct thread, child_elem);
 
