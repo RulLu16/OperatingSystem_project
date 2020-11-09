@@ -55,9 +55,21 @@ syscall_handler (struct intr_frame *f UNUSED)
       f->eax = max_of_four_int(*(int*)(f->esp + 4), *(int*)(f->esp + 8), \
                      *(int*)(f->esp + 12), *(int*)(f->esp + 16));
       break;
+    case SYS_CREATE:
+      break;
+    case SYS_REMOVE:
+        break;
+    case SYS_OPEN:
+        break;
+    case SYS_FILESIZE:
+        break;
+    case SYS_SEEK:
+        break;
+    case SYS_TELL:
+        break;
+    case SYS_CLOSE:
+        break;
   }
-
-  //thread_exit ();
 }
 
 /* Check if addr is in user address space. */
@@ -132,4 +144,26 @@ int max_of_four_int(int a, int b, int c, int d){
     if(max < d) max = d;
 
     return max;
+}
+
+/* Project 2 */
+bool sys_create(const char* file, unsigned initial_size){
+}
+
+bool sys_remove(const char* file){
+}
+
+int sys_open(const char* file){
+}
+
+int sys_filesize(int fd){
+}
+
+void sys_seek(int fd, unsigned position){
+}
+
+unsigned sys_tell(int fd){
+}
+
+void sys_close(int fd){
 }
