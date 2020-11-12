@@ -4,6 +4,7 @@
 #include "devices/shutdown.h"
 #include "devices/input.h"
 #include "filesys/filesys.h"
+#include "filesys/file.h"
 
 void syscall_init (void);
 

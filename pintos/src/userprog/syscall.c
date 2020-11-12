@@ -162,19 +162,44 @@ bool sys_create(const char* file, unsigned initial_size){
 }
 
 bool sys_remove(const char* file){
+    if(file == NULL) sys_exit(-1); // NULL exception
+
+    return filesys_remove(file);
 }
 
 int sys_open(const char* file){
+    if(file == NULL) sys_exit(-1); // NULL exception
+
+    struct file* f = filesys_open(file);
+    struct thread* cur = thread_current(); 
+
+    if(f == NULL) return -1;
+    
+    for(int i=3;i<128;i++){
+        if(cur->file_desp[i] == NULL){
+            cur->file_desp[i] = f;
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 int sys_filesize(int fd){
+    return file_length(thread_current()->file_desp[fd]);
 }
 
 void sys_seek(int fd, unsigned position){
+    file_seek(thread_current()->file_desp[fd], position);
 }
 
 unsigned sys_tell(int fd){
+    return file_tell(thread_current()->file_desp[fd]);
 }
 
 void sys_close(int fd){
+    struct thread* cur = thread_current();
+
+    file_close(cur->file_desp[fd]);
+    cur->file_desp[fd] = NULL;
 }

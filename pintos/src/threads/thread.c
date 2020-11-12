@@ -473,6 +473,11 @@ init_thread (struct thread *t, const char *name, int priority)
   sema_init(&(t->clean_lock), 0);
   list_init(&(t->child));
   list_push_back(&(running_thread()->child), &(t->child_elem));
+
+  /* Init file descriptor. */
+  for(int i=0;i<128;i++){
+      t->file_desp[i] = NULL;
+  }
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
