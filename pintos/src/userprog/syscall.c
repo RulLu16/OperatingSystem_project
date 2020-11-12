@@ -56,19 +56,27 @@ syscall_handler (struct intr_frame *f UNUSED)
                      *(int*)(f->esp + 12), *(int*)(f->esp + 16));
       break;
     case SYS_CREATE:
+      addr_check(f->esp + 8);
+      f->eax = sys_create((const char*)*(uint32_t*)(f->esp + 4), (unsigned)*(uint32_t*)(f->esp + 8));
       break;
     case SYS_REMOVE:
-        break;
+      f->eax = sys_remove((const char*)*(uint32_t*)(f->esp + 4));
+      break;
     case SYS_OPEN:
-        break;
+      f->eax = sys_open((const char*)*(uint32_t*)(f->esp + 4));
+      break;
     case SYS_FILESIZE:
-        break;
+      f->eax = sys_filesize(*(int*)(f->esp + 4));
+      break;
     case SYS_SEEK:
-        break;
+      sys_seek(*(int*)(f->esp + 4), (unsigned)*(uint32_t*)(f->esp + 8));
+      break;
     case SYS_TELL:
-        break;
+      f->eax = sys_tell(*(int*)(f->esp + 4));
+      break;
     case SYS_CLOSE:
-        break;
+      sys_close(*(int*)(f->esp + 4));
+      break;
   }
 }
 
@@ -148,6 +156,9 @@ int max_of_four_int(int a, int b, int c, int d){
 
 /* Project 2 */
 bool sys_create(const char* file, unsigned initial_size){
+    if(file == NULL) sys_exit(-1); // NULL exception
+
+    return filesys_create(file, initial_size);
 }
 
 bool sys_remove(const char* file){

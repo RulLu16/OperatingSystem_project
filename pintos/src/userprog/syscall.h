@@ -3,6 +3,7 @@
 #include "lib/user/syscall.h"
 #include "devices/shutdown.h"
 #include "devices/input.h"
+#include "filesys/filesys.h"
 
 void syscall_init (void);
 
