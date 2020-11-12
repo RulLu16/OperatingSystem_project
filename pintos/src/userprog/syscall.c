@@ -12,6 +12,7 @@ void
 syscall_init (void) 
 {
   intr_register_int (0x30, 3, INTR_ON, syscall_handler, "syscall");
+  lock_init(&file_lock);
 }
 
 static void
@@ -107,25 +108,51 @@ int sys_wait(pid_t pid){
 
 int sys_read(int fd, void* buffer, unsigned size){
     int i;
+    struct thread* cur = thread_current();
+    off_t result = -1;
+
+    addr_check(buffer);
+    lock_acquire(&file_lock);
 
     if(fd == 0){
         for(i=0;i<(int)size;i++){
             *(uint8_t*)(buffer + i) = input_getc();
         }
 
-        if(i != (int)size) return -1; // Bad read.
-        else return size;
+        if(i != (int)size) result = -1; // Bad read.
+        else result = size;
+    }
+    else if(fd>2){
+        if(cur->file_desp[fd] == NULL) sys_exit(-1);
+
+        result = file_read(cur->file_desp[fd], buffer, size);
     }
 
-    return -1;
+    lock_release(&file_lock);
+    return result;
 }
 
 int sys_write(int fd, const void* buffer, unsigned size){
+    struct thread* cur = thread_current();
+    off_t result = -1;
+    
+    addr_check(buffer);
+    lock_acquire(&file_lock);
+
     if(fd == 1){
         putbuf(buffer, size);
-        return size;
+        result = size;
     }
-    else return -1;
+    else if(fd>2){
+        if(cur->file_desp[fd] == NULL) sys_exit(-1);
+
+        if(cur->file_desp[fd]->deny_write)
+          file_deny_write(cur->file_desp[fd]);
+        result = file_write(cur->file_desp[fd], buffer, size);
+    }
+    
+    lock_release(&file_lock);
+    return result;
 }
 
 int fibonacci(int n){
@@ -186,19 +213,24 @@ int sys_open(const char* file){
 }
 
 int sys_filesize(int fd){
+    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
     return file_length(thread_current()->file_desp[fd]);
 }
 
 void sys_seek(int fd, unsigned position){
+    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
     file_seek(thread_current()->file_desp[fd], position);
 }
 
 unsigned sys_tell(int fd){
+    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
     return file_tell(thread_current()->file_desp[fd]);
 }
 
 void sys_close(int fd){
     struct thread* cur = thread_current();
+
+    if(cur->file_desp[fd] == NULL) sys_exit(-1);
 
     file_close(cur->file_desp[fd]);
     cur->file_desp[fd] = NULL;

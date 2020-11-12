@@ -101,7 +101,6 @@ struct thread
 
     struct file* file_desp[128];               /* File descriptor. */
 
-
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
