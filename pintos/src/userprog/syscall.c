@@ -1,5 +1,6 @@
 #include "userprog/syscall.h"
 #include <stdio.h>
+#include <string.h>
 #include <syscall-nr.h>
 #include "threads/interrupt.h"
 #include "threads/thread.h"
@@ -93,6 +94,14 @@ void sys_halt(void){
 }
 
 void sys_exit(int status){
+    struct thread* cur = thread_current();
+
+    /* Close all files in current thread. */
+    for(int i=3;i<128;i++){
+        if(cur->file_desp[i] != NULL)
+          sys_close(i);
+    }
+
     printf("%s: exit(%d)\n", thread_name(), status);
     thread_current()->exit_status = status;
     thread_exit();
@@ -197,18 +206,28 @@ bool sys_remove(const char* file){
 int sys_open(const char* file){
     if(file == NULL) sys_exit(-1); // NULL exception
 
+    lock_acquire(&file_lock);
+
     struct file* f = filesys_open(file);
     struct thread* cur = thread_current(); 
 
-    if(f == NULL) return -1;
+    if(f == NULL){
+        lock_release(&file_lock);
+        return -1;
+    }
     
     for(int i=3;i<128;i++){
         if(cur->file_desp[i] == NULL){
             cur->file_desp[i] = f;
+            if(!strcmp(file, cur->name))
+              file_deny_write(cur->file_desp[i]);
+
+            lock_release(&file_lock);
             return i;
         }
     }
 
+    lock_release(&file_lock);
     return -1;
 }
 
