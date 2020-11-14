@@ -190,26 +190,23 @@ int max_of_four_int(int a, int b, int c, int d){
     return max;
 }
 
-/* Project 2 */
 bool sys_create(const char* file, unsigned initial_size){
     if(file == NULL) sys_exit(-1); // NULL exception
-
     return filesys_create(file, initial_size);
 }
 
 bool sys_remove(const char* file){
     if(file == NULL) sys_exit(-1); // NULL exception
-
     return filesys_remove(file);
 }
 
 int sys_open(const char* file){
     if(file == NULL) sys_exit(-1); // NULL exception
-
     lock_acquire(&file_lock);
 
     struct file* f = filesys_open(file);
     struct thread* cur = thread_current(); 
+    int result = -1;
 
     if(f == NULL){
         lock_release(&file_lock);
@@ -222,13 +219,13 @@ int sys_open(const char* file){
             if(!strcmp(file, cur->name))
               file_deny_write(cur->file_desp[i]);
 
-            lock_release(&file_lock);
-            return i;
+            result = i;
+            break;
         }
     }
 
     lock_release(&file_lock);
-    return -1;
+    return result;
 }
 
 int sys_filesize(int fd){
@@ -249,8 +246,7 @@ unsigned sys_tell(int fd){
 void sys_close(int fd){
     struct thread* cur = thread_current();
 
-    if(cur->file_desp[fd] == NULL) sys_exit(-1);
-
+    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
     file_close(cur->file_desp[fd]);
     cur->file_desp[fd] = NULL;
 }
