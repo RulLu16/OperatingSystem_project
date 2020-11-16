@@ -28,8 +28,6 @@ int max_of_four_int(int, int, int, int);
 /* Project 2 */
 struct lock file_lock;
 
-void check_file(const char*);
-void check_descriptor(int);
 bool sys_create(const char*, unsigned);
 bool sys_remove(const char*);
 int sys_open(const char*);

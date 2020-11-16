@@ -198,6 +198,7 @@ int max_of_four_int(int a, int b, int c, int d){
     return max;
 }
 
+/* Project 2 */
 bool sys_create(const char* file, unsigned initial_size){
     if(file == NULL) sys_exit(-1); // NULL exception
     return filesys_create(file, initial_size);
@@ -267,7 +268,7 @@ unsigned sys_tell(int fd){
 void sys_close(int fd){
     struct thread* cur = thread_current();
 
-    if(thread_current()->file_desp[fd] == NULL) 
+    if(cur->file_desp[fd] == NULL) 
       sys_exit(-1); // No file.
 
     file_close(cur->file_desp[fd]);
