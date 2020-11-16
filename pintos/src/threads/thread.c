@@ -478,6 +478,9 @@ init_thread (struct thread *t, const char *name, int priority)
   for(int i=0;i<128;i++){
       t->file_desp[i] = NULL;
   }
+
+  sema_init(&(t->load_lock), 0);
+  t->parent_thread = running_thread();
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and

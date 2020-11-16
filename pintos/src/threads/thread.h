@@ -99,7 +99,11 @@ struct thread
     struct list_elem child_elem;        /* Child list element. */
     int exit_status;
 
+    /* Project 2. */
+    struct semaphore load_lock;         /* Semaphore for executing load. */
+
     struct file* file_desp[128];               /* File descriptor. */
+    struct thread* parent_thread;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */

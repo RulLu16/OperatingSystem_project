@@ -49,6 +49,10 @@ process_execute (const char *file_name)
 
   /* Create a new thread to execute FILE_NAME. */
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, fn_copy);
+
+  /* Wait until load is completed. */
+  sema_down(&thread_current()->load_lock);
+
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;
@@ -72,6 +76,10 @@ start_process (void *file_name_)
 
   /* If load failed, quit. */
   palloc_free_page (file_name);
+
+  /* free lock after load complete. */
+  sema_up(&thread_current()->parent_thread->load_lock);
+
   if (!success) 
     thread_exit ();
 
