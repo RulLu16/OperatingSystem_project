@@ -121,9 +121,11 @@ int sys_read(int fd, void* buffer, unsigned size){
     off_t result = -1;
 
     addr_check(buffer);
+
+    /* Set read lock. */
     lock_acquire(&file_lock);
 
-    if(fd == 0){
+    if(fd == 0){ // STDIN
         for(i=0;i<(int)size;i++){
             *(uint8_t*)(buffer + i) = input_getc();
         }
@@ -132,11 +134,12 @@ int sys_read(int fd, void* buffer, unsigned size){
         else result = size;
     }
     else if(fd>2){
-        if(cur->file_desp[fd] == NULL) sys_exit(-1);
+        if(cur->file_desp[fd] == NULL) sys_exit(-1); // No file.
 
         result = file_read(cur->file_desp[fd], buffer, size);
     }
 
+    /* Release read lock. */
     lock_release(&file_lock);
     return result;
 }
@@ -146,20 +149,25 @@ int sys_write(int fd, const void* buffer, unsigned size){
     off_t result = -1;
     
     addr_check(buffer);
+
+    /* Set write lock. */
     lock_acquire(&file_lock);
 
-    if(fd == 1){
+    if(fd == 1){ // STDOUT
         putbuf(buffer, size);
         result = size;
     }
     else if(fd>2){
-        if(cur->file_desp[fd] == NULL) sys_exit(-1);
+        if(cur->file_desp[fd] == NULL) sys_exit(-1); // No file.
 
+        /* Wait until enable write. */
         if(cur->file_desp[fd]->deny_write)
           file_deny_write(cur->file_desp[fd]);
+
         result = file_write(cur->file_desp[fd], buffer, size);
     }
     
+    /* Release write lock. */
     lock_release(&file_lock);
     return result;
 }
@@ -202,20 +210,26 @@ bool sys_remove(const char* file){
 
 int sys_open(const char* file){
     if(file == NULL) sys_exit(-1); // NULL exception
+
+    /* Set open lock. */
     lock_acquire(&file_lock);
 
     struct file* f = filesys_open(file);
     struct thread* cur = thread_current(); 
     int result = -1;
 
+    /* No file. */
     if(f == NULL){
         lock_release(&file_lock);
         return -1;
     }
     
+    /* Find empty descriptor and set. */
     for(int i=3;i<128;i++){
         if(cur->file_desp[i] == NULL){
             cur->file_desp[i] = f;
+
+            /* Set deny write. */
             if(!strcmp(file, cur->name))
               file_deny_write(cur->file_desp[i]);
 
@@ -224,29 +238,38 @@ int sys_open(const char* file){
         }
     }
 
+    /* Release open lock. */
     lock_release(&file_lock);
     return result;
 }
 
 int sys_filesize(int fd){
-    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
+    if(thread_current()->file_desp[fd] == NULL) 
+      sys_exit(-1); // No file.
+
     return file_length(thread_current()->file_desp[fd]);
 }
 
 void sys_seek(int fd, unsigned position){
-    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
+    if(thread_current()->file_desp[fd] == NULL) 
+      sys_exit(-1); // No file.
+
     file_seek(thread_current()->file_desp[fd], position);
 }
 
 unsigned sys_tell(int fd){
-    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
+    if(thread_current()->file_desp[fd] == NULL) 
+      sys_exit(-1); // No file.
+
     return file_tell(thread_current()->file_desp[fd]);
 }
 
 void sys_close(int fd){
     struct thread* cur = thread_current();
 
-    if(thread_current()->file_desp[fd] == NULL) sys_exit(-1);
+    if(thread_current()->file_desp[fd] == NULL) 
+      sys_exit(-1); // No file.
+
     file_close(cur->file_desp[fd]);
     cur->file_desp[fd] = NULL;
 }

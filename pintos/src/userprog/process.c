@@ -59,7 +59,7 @@ process_execute (const char *file_name)
     palloc_free_page (fn_copy); 
 
   /* Delete terminated child thread. */
-  for(struct list_elem* e = list_begin(&(cur->child));e != list_end(&(cur->child)); e = list_next(e)){
+  for(struct list_elem* e = list_begin(&(cur->child)); e != list_end(&(cur->child)); e = list_next(e)){
      struct thread* t = list_entry(e, struct thread, child_elem);
 
      if(t->exit_status == -1)
@@ -88,7 +88,7 @@ start_process (void *file_name_)
   /* If load failed, quit. */
   palloc_free_page (file_name);
 
-  /* free lock after load complete. */
+  /* Free lock after load complete. */
   sema_up(&thread_current()->parent_thread->load_lock);
 
   if (!success) 
@@ -124,14 +124,16 @@ process_wait (tid_t child_tid UNUSED)
   if(child_tid < 0) return -1;
 
   /* Search child thread and wait using semaphore. */
-  for(struct list_elem* e = list_begin(&(cur->child));e != list_end(&(cur->child)); e=list_next(e)){
+  for(struct list_elem* e = list_begin(&(cur->child)); e != list_end(&(cur->child)); e=list_next(e)){
 
       struct thread* t = list_entry(e, struct thread, child_elem);
 
       if(child_tid == t->tid){
           sema_down(&(t->child_lock));    // lock until child thread is done.
+
           exit_status = t->exit_status; 
           list_remove(&(t->child_elem));  // remove child's useless memory.
+
           sema_up(&(t->clean_lock));      // lock for clean memory.
 
           return exit_status;
