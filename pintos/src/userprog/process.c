@@ -17,6 +17,7 @@
 #include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "userprog/syscall.h"
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
@@ -33,6 +34,7 @@ process_execute (const char *file_name)
   char name_copy[129];
   char* thread_name;
   char* next_ptr;
+  struct thread* cur = thread_current();
 
   /* Make a copy of FILE_NAME.
      Otherwise there's a race between the caller and load(). */
@@ -51,10 +53,19 @@ process_execute (const char *file_name)
   tid = thread_create (thread_name, PRI_DEFAULT, start_process, fn_copy);
 
   /* Wait until load is completed. */
-  sema_down(&thread_current()->load_lock);
+  sema_down(&cur->load_lock);
 
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
+
+  /* Delete terminated child thread. */
+  for(struct list_elem* e = list_begin(&(cur->child));e != list_end(&(cur->child)); e = list_next(e)){
+     struct thread* t = list_entry(e, struct thread, child_elem);
+
+     if(t->exit_status == -1)
+       return process_wait(tid);
+  }
+
   return tid;
 }
 
@@ -81,7 +92,7 @@ start_process (void *file_name_)
   sema_up(&thread_current()->parent_thread->load_lock);
 
   if (!success) 
-    thread_exit ();
+    sys_exit(-1);
 
   /* Start the user process by simulating a return from an
      interrupt, implemented by intr_exit (in
