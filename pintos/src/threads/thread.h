@@ -6,6 +6,9 @@
 #include <stdint.h>
 #include "threads/synch.h"
 
+/* Project 3. */
+extern bool thread_prior_aging;
+
 /* States in a thread's life cycle. */
 enum thread_status
   {
