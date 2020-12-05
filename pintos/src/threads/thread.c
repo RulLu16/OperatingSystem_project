@@ -143,11 +143,11 @@ thread_tick (void)
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
 
-#ifndef USERPROG
-  /* Project 3. */
+/*#ifndef USERPROG
+   Project 3. 
   if(thread_prior_aging)
     thread_aging(); 
-#endif
+#endif*/
 }
 
 /* Prints thread statistics. */
@@ -251,6 +251,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
+
   list_insert_ordered (&ready_list, &t->elem, great_list, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
