@@ -7,8 +7,8 @@
 #include "threads/synch.h"
 
 #ifndef USERPROG
-/* Project 3. 
-extern bool thread_prior_aging;*/
+/* Project 3. */
+extern bool thread_prior_aging;
 #endif
 
 /* States in a thread's life cycle. */
@@ -159,6 +159,7 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 /* Project 3. */
+bool great_list(const struct list_elem*, const struct list_elem*, void*);
 void thread_aging(void);
 
 #endif /* threads/thread.h */

@@ -55,8 +55,8 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
 #ifndef USERPROG
-/* Project 3. 
-bool thread_prior_aging;*/
+/* Project 3. */
+bool thread_prior_aging;
 #endif
 
 /* If false (default), use round-robin scheduler.
@@ -144,9 +144,9 @@ thread_tick (void)
     intr_yield_on_return ();
 
 #ifndef USERPROG
-  /* Project 3. 
+  /* Project 3. */
   if(thread_prior_aging)
-    thread_aging(); */
+    thread_aging(); 
 #endif
 }
 
@@ -211,6 +211,9 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
+  
+  if(priority > thread_get_priority())
+    thread_yield();
 
   return tid;
 }
@@ -248,7 +251,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+  list_insert_ordered (&ready_list, &t->elem, great_list, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -319,7 +322,7 @@ thread_yield (void)
 
   old_level = intr_disable ();
   if (cur != idle_thread) 
-    list_push_back (&ready_list, &cur->elem);
+    list_insert_ordered (&ready_list, &cur->elem, great_list, NULL);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -346,7 +349,11 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
+  int pre_priority = thread_current()->priority;
   thread_current ()->priority = new_priority;
+  
+  if(pre_priority > new_priority)
+    thread_yield();
 }
 
 /* Returns the current thread's priority. */
@@ -607,6 +614,13 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+bool great_list(const struct list_elem* a, const struct list_elem* b, void* aux){
+    struct thread* threadA = list_entry(a, struct thread, elem);
+    struct thread* threadB = list_entry(b, struct thread, elem);
+
+    return threadA->priority > threadB->priority;
+}
 
 void thread_aging(){
 }
