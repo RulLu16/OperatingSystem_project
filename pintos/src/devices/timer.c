@@ -20,6 +20,10 @@
 /* Number of timer ticks since OS booted. */
 static int64_t ticks;
 
+/* list of processes in thread_block state. blocked until 
+   timer is over. (project 3) */
+static struct list block_list;
+
 /* Number of loops per timer tick.
    Initialized by timer_calibrate(). */
 static unsigned loops_per_tick;
@@ -35,6 +39,7 @@ static void real_time_delay (int64_t num, int32_t denom);
 void
 timer_init (void) 
 {
+  list_init(&block_list);
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 }
@@ -90,10 +95,19 @@ void
 timer_sleep (int64_t ticks) 
 {
   int64_t start = timer_ticks ();
+  struct thread* cur = thread_current();
+  enum intr_level old_level;
 
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+
+  /* Insert thread's timer.  */
+  old_level = intr_disable();
+  cur->wake_time = start + ticks;
+
+  /* Push to block_list. */
+  list_push_back(&block_list, &cur->elem);
+  thread_block();
+  intr_set_level(old_level);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -171,7 +185,18 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
-  thread_tick ();
+
+  for(struct list_elem* e = list_begin(&block_list); e != list_end(&block_list); ){
+      struct thread* t = list_entry(e, struct thread, elem);
+
+      if(t->wake_time <= ticks){
+          e = list_remove(e);
+          thread_unblock(t);
+      }
+      else e = list_next(e);
+  }
+
+  thread_tick();
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

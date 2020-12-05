@@ -55,8 +55,8 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
 #ifndef USERPROG
-/* Project 3. */
-bool thread_prior_aging;
+/* Project 3. 
+bool thread_prior_aging;*/
 #endif
 
 /* If false (default), use round-robin scheduler.
@@ -144,11 +144,9 @@ thread_tick (void)
     intr_yield_on_return ();
 
 #ifndef USERPROG
-  /* Project 3. */
-  thread_wake_up();
-
+  /* Project 3. 
   if(thread_prior_aging)
-    thread_aging();
+    thread_aging(); */
 #endif
 }
 
@@ -609,3 +607,6 @@ allocate_tid (void)
 /* Offset of `stack' member within `struct thread'.
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
+
+void thread_aging(){
+}

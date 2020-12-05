@@ -6,8 +6,10 @@
 #include <stdint.h>
 #include "threads/synch.h"
 
-/* Project 3. */
-extern bool thread_prior_aging;
+#ifndef USERPROG
+/* Project 3. 
+extern bool thread_prior_aging;*/
+#endif
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -105,6 +107,9 @@ struct thread
     /* Project 2. */
     struct semaphore load_lock;         /* Semaphore for executing load. */
 
+    /* Project 3. */
+    int64_t wake_time;
+
     struct file* file_desp[128];               /* File descriptor. */
     struct thread* parent_thread;
 
@@ -152,5 +157,8 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
+/* Project 3. */
+void thread_aging(void);
 
 #endif /* threads/thread.h */
