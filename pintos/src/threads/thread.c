@@ -11,7 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
-//#include "threads/arithmetic.c"
+#include "threads/arithmetic.c"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -665,7 +665,7 @@ int max_priority(){
     return prior;
 }
 
-void thread_update_cpu(){
+void update_load_avg(){
     int ready_size = list_size(&ready_list);
 
     // Add ready_size if running or blocking state.
@@ -677,17 +677,21 @@ void thread_update_cpu(){
     int add_avg = add_float_int(mul_avg, ready_size);
 
     load_avg = div_float_int(add_avg, 60);
+}
+
+void thread_update_cpu(){
+    update_load_avg();
 
     // Update recent cpu in threads.
     for(struct list_elem* e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)){
-        struct thread* t = list_entry(e, struct thread, elem);
+        struct thread* t = list_entry(e, struct thread, allelem);
 
         // Running or blocking state.
         if(t != idle_thread){
             int avg_twice = mul_int_float(2, load_avg);
             int frac = div_float_float(avg_twice, add_float_int(avg_twice, 1));
-            t->cpu = mul_float_float(frac, t->cpu);
-            t->cpu = add_float_int(t->cpu, t->nice);
+            int mul_cpu = mul_float_float(frac, t->cpu);
+            t->cpu = add_float_int(mul_cpu, t->nice);
         }
     }
 }
@@ -696,7 +700,7 @@ void thread_update_priority(){
     int priority;
 
     for(struct list_elem* e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)){
-        struct thread* t = list_entry(e, struct thread, elem);
+        struct thread* t = list_entry(e, struct thread, allelem);
         int nice_twice = mul_int_float(2, add_float_int(0, t->nice));
         int cpu_quarter = div_float_int(t->cpu, 4);
 

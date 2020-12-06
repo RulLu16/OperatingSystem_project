@@ -29,6 +29,7 @@ typedef int tid_t;
 #define PRI_MIN 0                       /* Lowest priority. */
 #define PRI_DEFAULT 31                  /* Default priority. */
 #define PRI_MAX 63                      /* Highest priority. */
+#define FRACTION (1<<14)
 
 /* A kernel thread or user process.
 
@@ -163,6 +164,7 @@ int thread_get_load_avg (void);
 /* Project 3. */
 bool great_list(const struct list_elem*, const struct list_elem*, void*);
 int max_priority(void);
+void update_load_avg(void);
 void thread_update_cpu(void);
 void thread_update_priority(void);
 
