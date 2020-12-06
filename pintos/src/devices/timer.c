@@ -186,6 +186,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
 
+  /* Check blocked threads and wake up. */
   for(struct list_elem* e = list_begin(&block_list); e != list_end(&block_list); ){
       struct thread* t = list_entry(e, struct thread, elem);
 
@@ -196,16 +197,21 @@ timer_interrupt (struct intr_frame *args UNUSED)
       else e = list_next(e);
   }
 
+  /* If using aging or MLFQ, update cpu and priority. */
   if(thread_prior_aging || thread_mlfqs){
       struct thread* cur = thread_current();
 
+      /* Add 1 to recent_cpu. */
       cur->cpu = add_float_int(cur->cpu, 1);
+
+      /* Update cpu in every tick. */
       if(!(timer_ticks() % TIMER_FREQ))
         thread_update_cpu();
+
+      /* Update priority in every 4 tick. */
       if(!(timer_ticks() % 4))
         thread_update_priority();
   }
-
   thread_tick();
 }
 

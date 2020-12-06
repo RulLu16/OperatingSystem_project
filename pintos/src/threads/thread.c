@@ -98,7 +98,6 @@ thread_init (void)
 {
   ASSERT (intr_get_level () == INTR_OFF);
 
-  load_avg = 0;
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
@@ -110,6 +109,7 @@ thread_init (void)
   initial_thread->tid = allocate_tid ();
 
   /* Project 3. init variables. */
+  load_avg = 0;
   initial_thread->nice = 0;
   initial_thread->cpu = 0;
 }
@@ -221,6 +221,7 @@ thread_create (const char *name, int priority,
   /* Add to run queue. */
   thread_unblock (t);
   
+  /* If new thread's priority is bigger, yield. */
   if(priority > thread_get_priority())
     thread_yield();
 
@@ -261,6 +262,7 @@ thread_unblock (struct thread *t)
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
 
+  /* For priority scheduling. */
   list_insert_ordered (&ready_list, &t->elem, great_list, NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
@@ -331,8 +333,11 @@ thread_yield (void)
   ASSERT (!intr_context ());
 
   old_level = intr_disable ();
+
+  /* For priority scheduling. */
   if (cur != idle_thread) 
     list_insert_ordered (&ready_list, &cur->elem, great_list, NULL);
+
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -359,12 +364,13 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
-  // If using mlfq, use priority made by cpu only.
+  /* If using mlfq, use priority made by cpu only. */
   if(thread_mlfqs) return;
 
   int pre_priority = thread_current()->priority;
   thread_current ()->priority = new_priority;
   
+  /* New priority is bigger, yield. */
   if(pre_priority > new_priority)
     thread_yield();
 }
@@ -382,14 +388,19 @@ thread_set_nice (int nice UNUSED)
 {
   int priority;
   struct thread* t = thread_current();
+
+  /* Update thread's nice. */
   t->nice = nice;
 
+  /* Calculate new priority using this formula. */
+  /* priority = PRI_MAX – (recent_cpu / 4) - (nice * 2) */
   int nice_twice = mul_int_float(2, add_float_int(0, t->nice));
   int cpu_quarter = div_float_int(t->cpu, 4);
 
   priority = sub_float_float(add_float_int(0, PRI_MAX), cpu_quarter);
   priority = sub_float_float(priority, nice_twice) / FRACTION;
 
+  /* Considerate edge. */
   if(priority > PRI_MAX)
     priority = PRI_MAX;
   else if(priority < PRI_MIN)
@@ -397,6 +408,7 @@ thread_set_nice (int nice UNUSED)
 
   t->priority = priority;
 
+  /* If new priority is bigger, yield. */
   if(t->priority < max_priority())
     thread_yield();
 }
@@ -657,6 +669,7 @@ bool great_list(const struct list_elem* a, const struct list_elem* b, void* aux)
     return threadA->priority > threadB->priority;
 }
 
+/* Get max priority in ready list. */
 int max_priority(){
     int prior = -1;
 
@@ -668,28 +681,31 @@ int max_priority(){
     return prior;
 }
 
+/* Calculate load avg. */
 void update_load_avg(){
-    int ready_size = list_size(&ready_list);
+    int ready_threads = list_size(&ready_list);
 
-    // Add ready_size if running or blocking state.
+    /* Add ready_size if running or blocking state. */
     if(thread_current() != idle_thread)
-      ready_size++;
+      ready_threads++;
 
-    // Calculate load_avg
+    /* Calculate load_avg by using this formula. */
+    /* load_avg = (59/60) * load_avg + (1/60) * ready_threads. */
     int mul_avg = mul_int_float(59, load_avg);
-    int add_avg = add_float_int(mul_avg, ready_size);
+    int add_avg = add_float_int(mul_avg, ready_threads);
 
     load_avg = div_float_int(add_avg, 60);
 }
 
+/* Calculate recent cpu. */
 void thread_update_cpu(){
     update_load_avg();
 
-    // Update recent cpu in threads.
     for(struct list_elem* e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)){
         struct thread* t = list_entry(e, struct thread, allelem);
 
-        // Running or blocking state.
+        /* Running or blocking state, calculate cpu using this formula. */
+        /* recent_cpu = (2 * load_avg) / (2 * load_avg + 1) * recent_cpu + nice */
         if(t != idle_thread){
             int avg_twice = mul_int_float(2, load_avg);
             int frac = div_float_float(avg_twice, add_float_int(avg_twice, 1));
@@ -699,9 +715,12 @@ void thread_update_cpu(){
     }
 }
 
+/* Calculate new priority. */
 void thread_update_priority(){
     int priority;
 
+    /* Calculate new priority using this formula. */
+    /* priority = PRI_MAX – (recent_cpu / 4) - (nice * 2) */
     for(struct list_elem* e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)){
         struct thread* t = list_entry(e, struct thread, allelem);
         int nice_twice = mul_int_float(2, add_float_int(0, t->nice));
@@ -710,6 +729,7 @@ void thread_update_priority(){
         priority = sub_float_float(add_float_int(0, PRI_MAX), cpu_quarter);
         priority = sub_float_float(priority, nice_twice) / FRACTION;
 
+        /* Considerate edge. */
         if(priority > PRI_MAX)
           priority = PRI_MAX;
         else if(priority < PRI_MIN)
@@ -718,6 +738,7 @@ void thread_update_priority(){
         t->priority = priority;
     }
 
+    /* If new priority is bigger, yield. */
     if(thread_current()->priority < max_priority())
       intr_yield_on_return();
 }
