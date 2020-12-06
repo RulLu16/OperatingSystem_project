@@ -196,7 +196,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
       else e = list_next(e);
   }
 
-  if(thread_prior_aging){
+  if(thread_prior_aging || thread_mlfqs){
       struct thread* cur = thread_current();
 
       cur->cpu = add_float_int(cur->cpu, 1);

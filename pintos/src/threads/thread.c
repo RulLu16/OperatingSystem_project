@@ -153,9 +153,9 @@ thread_tick (void)
     intr_yield_on_return ();
 
 #ifndef USERPROG
-  /* Project 3. 
-  if(thread_prior_aging)
-    thread_aging(); */
+  /* Project 3. */ 
+  /*if(thread_prior_aging)
+    thread_update_cpu();*/
 #endif
 }
 
@@ -359,6 +359,9 @@ thread_foreach (thread_action_func *func, void *aux)
 void
 thread_set_priority (int new_priority) 
 {
+  // If using mlfq, use priority made by cpu only.
+  if(thread_mlfqs) return;
+
   int pre_priority = thread_current()->priority;
   thread_current ()->priority = new_priority;
   
