@@ -196,6 +196,16 @@ timer_interrupt (struct intr_frame *args UNUSED)
       else e = list_next(e);
   }
 
+  if(thread_prior_aging){
+      struct thread* cur = thread_current();
+
+      cur->cpu = add_float_int(cur->cpu, 1);
+      if(!(timer_ticks() % TIMER_FREQ))
+        thread_update_cpu();
+      if(!(timer_ticks() % 4))
+        thread_update_priority();
+  }
+
   thread_tick();
 }
 

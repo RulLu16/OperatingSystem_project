@@ -109,6 +109,8 @@ struct thread
 
     /* Project 3. */
     int64_t wake_time;
+    int nice;
+    int cpu;
 
     struct file* file_desp[128];               /* File descriptor. */
     struct thread* parent_thread;
@@ -160,6 +162,8 @@ int thread_get_load_avg (void);
 
 /* Project 3. */
 bool great_list(const struct list_elem*, const struct list_elem*, void*);
-void thread_aging(void);
+int max_priority(void);
+void thread_update_cpu(void);
+void thread_update_priority(void);
 
 #endif /* threads/thread.h */

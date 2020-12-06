@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+//#include "threads/arithmetic.c"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -23,6 +24,9 @@
 /* List of processes in THREAD_READY state, that is, processes
    that are ready to run but not actually running. */
 static struct list ready_list;
+
+/* Variable for save load average. */
+static int load_avg;
 
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
@@ -94,6 +98,7 @@ thread_init (void)
 {
   ASSERT (intr_get_level () == INTR_OFF);
 
+  load_avg = 0;
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
@@ -103,6 +108,10 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+
+  /* Project 3. init variables. */
+  initial_thread->nice = 0;
+  initial_thread->cpu = 0;
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
@@ -143,11 +152,11 @@ thread_tick (void)
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
 
-/*#ifndef USERPROG
-   Project 3. 
+#ifndef USERPROG
+  /* Project 3. 
   if(thread_prior_aging)
-    thread_aging(); 
-#endif*/
+    thread_aging(); */
+#endif
 }
 
 /* Prints thread statistics. */
@@ -368,31 +377,48 @@ thread_get_priority (void)
 void
 thread_set_nice (int nice UNUSED) 
 {
-  /* Not yet implemented. */
+  int priority;
+  struct thread* t = thread_current();
+  t->nice = nice;
+
+  int nice_twice = mul_int_float(2, add_float_int(0, t->nice));
+  int cpu_quarter = div_float_int(t->cpu, 4);
+
+  priority = sub_float_float(add_float_int(0, PRI_MAX), cpu_quarter);
+  priority = sub_float_float(priority, nice_twice) / FRACTION;
+
+  if(priority > PRI_MAX)
+    priority = PRI_MAX;
+  else if(priority < PRI_MIN)
+    priority = PRI_MIN;
+
+  t->priority = priority;
+
+  if(t->priority < max_priority())
+    thread_yield();
 }
 
 /* Returns the current thread's nice value. */
 int
 thread_get_nice (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  return thread_current()->nice;
 }
 
 /* Returns 100 times the system load average. */
 int
 thread_get_load_avg (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  int mul = mul_int_float(100, load_avg);
+  return mul / FRACTION;
 }
 
 /* Returns 100 times the current thread's recent_cpu value. */
 int
 thread_get_recent_cpu (void) 
 {
-  /* Not yet implemented. */
-  return 0;
+  int mul = mul_int_float(100, thread_current()->cpu);
+  return mul / FRACTION;
 }
 
 /* Idle thread.  Executes when no other thread is ready to run.
@@ -500,6 +526,10 @@ init_thread (struct thread *t, const char *name, int priority)
 
   sema_init(&(t->load_lock), 0);
   t->parent_thread = running_thread();
+
+  /* Project 3. */
+  t->cpu = running_thread()->cpu;
+  t->nice = running_thread()->nice;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
@@ -616,6 +646,7 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
+/* Project 3. */
 bool great_list(const struct list_elem* a, const struct list_elem* b, void* aux){
     struct thread* threadA = list_entry(a, struct thread, elem);
     struct thread* threadB = list_entry(b, struct thread, elem);
@@ -623,5 +654,63 @@ bool great_list(const struct list_elem* a, const struct list_elem* b, void* aux)
     return threadA->priority > threadB->priority;
 }
 
-void thread_aging(){
+int max_priority(){
+    int prior = -1;
+
+    if(!list_empty(&ready_list)){
+        struct thread* t = list_entry(list_front(&ready_list), struct thread, elem);
+        prior = t->priority;
+    }
+
+    return prior;
+}
+
+void thread_update_cpu(){
+    int ready_size = list_size(&ready_list);
+
+    // Add ready_size if running or blocking state.
+    if(thread_current() != idle_thread)
+      ready_size++;
+
+    // Calculate load_avg
+    int mul_avg = mul_int_float(59, load_avg);
+    int add_avg = add_float_int(mul_avg, ready_size);
+
+    load_avg = div_float_int(add_avg, 60);
+
+    // Update recent cpu in threads.
+    for(struct list_elem* e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)){
+        struct thread* t = list_entry(e, struct thread, elem);
+
+        // Running or blocking state.
+        if(t != idle_thread){
+            int avg_twice = mul_int_float(2, load_avg);
+            int frac = div_float_float(avg_twice, add_float_int(avg_twice, 1));
+            t->cpu = mul_float_float(frac, t->cpu);
+            t->cpu = add_float_int(t->cpu, t->nice);
+        }
+    }
+}
+
+void thread_update_priority(){
+    int priority;
+
+    for(struct list_elem* e = list_begin(&all_list); e != list_end(&all_list); e = list_next(e)){
+        struct thread* t = list_entry(e, struct thread, elem);
+        int nice_twice = mul_int_float(2, add_float_int(0, t->nice));
+        int cpu_quarter = div_float_int(t->cpu, 4);
+
+        priority = sub_float_float(add_float_int(0, PRI_MAX), cpu_quarter);
+        priority = sub_float_float(priority, nice_twice) / FRACTION;
+
+        if(priority > PRI_MAX)
+          priority = PRI_MAX;
+        else if(priority < PRI_MIN)
+          priority = PRI_MIN;
+
+        t->priority = priority;
+    }
+
+    if(thread_current()->priority < max_priority())
+      intr_yield_on_return();
 }
