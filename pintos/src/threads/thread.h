@@ -107,14 +107,13 @@ struct thread
 
     /* Project 2. */
     struct semaphore load_lock;         /* Semaphore for executing load. */
+    struct file* file_desp[128];               /* File descriptor. */
+    struct thread* parent_thread;
 
     /* Project 3. */
     int64_t wake_time;
     int nice;
     int cpu;
-
-    struct file* file_desp[128];               /* File descriptor. */
-    struct thread* parent_thread;
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
