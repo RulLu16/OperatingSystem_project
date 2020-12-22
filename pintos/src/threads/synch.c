@@ -118,9 +118,11 @@ sema_up (struct semaphore *sema)
     thread_unblock (list_entry (list_pop_front (&sema->waiters),
                                 struct thread, elem));
   sema->value++;
-  intr_set_level (old_level);
 
+#ifndef USERPROG
   thread_yield();
+#endif
+  intr_set_level (old_level);
 }
 
 static void sema_test_helper (void *sema_);

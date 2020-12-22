@@ -6,10 +6,10 @@
 #include <stdint.h>
 #include "threads/synch.h"
 
-#ifndef USERPROG
+//#ifndef USERPROG
 /* Project 3. */
 extern bool thread_prior_aging;
-#endif
+//#endif
 
 /* States in a thread's life cycle. */
 enum thread_status
@@ -115,6 +115,8 @@ struct thread
     int nice;
     int cpu;
 
+    size_t stack_pages;
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -128,6 +130,8 @@ struct thread
    If true, use multi-level feedback queue scheduler.
    Controlled by kernel command-line option "-o mlfqs". */
 extern bool thread_mlfqs;
+
+//extern bool thread_started;
 
 void thread_init (void);
 void thread_start (void);

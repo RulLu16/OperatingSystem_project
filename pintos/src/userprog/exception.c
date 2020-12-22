@@ -5,6 +5,7 @@
 #include "threads/interrupt.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#include "threads/palloc.h"
 #include "userprog/syscall.h"
 #include "userprog/pagedir.h"
 
@@ -130,6 +131,8 @@ page_fault (struct intr_frame *f)
   bool user;         /* True: access by user, false: access by kernel. */
   void *fault_addr;  /* Fault address. */
   struct thread* cur = thread_current(); /* Get current running thread */
+  void* kpage;
+  void* upage;
 
   /* Obtain faulting address, the virtual address that was
      accessed to cause the fault.  It may point to code or to
@@ -152,6 +155,51 @@ page_fault (struct intr_frame *f)
   write = (f->error_code & PF_W) != 0;
   user = (f->error_code & PF_U) != 0;
 
+  /* Project 4. */
+  if(!user){
+      /* Access by kernel. */
+      thread_exit();
+      return;
+  }
+  else{
+      if(!not_present){
+          thread_exit();
+          return;
+      }
+      else{
+          if(!write){
+              thread_exit();
+              return;
+          }
+      }
+  }
+
+  size_t allocated_page = (PHYS_BASE - pg_round_down(fault_addr)) / PGSIZE;
+  size_t stack_page = cur->stack_pages;
+
+  /* Too many pages. */
+  if(allocated_page > 2048)
+    thread_exit();
+
+  allocated_page -= stack_page;
+  if(allocated_page > 0){
+      /* Grow pages. */
+      cur->stack_pages += allocated_page;
+
+      for(upage = pg_round_down(fault_addr); allocated_page > 0; --allocated_page, upage += PGSIZE){
+          if((kpage = palloc_get_page(PAL_USER | PAL_ZERO)) != NULL){
+              if(!pagedir_set_page(cur->pagedir, upage, kpage, true)){
+                  printf("pagedir_set_page error!\n");
+                  kill(f);
+              }
+          }
+          else{
+              printf("palloc_get_page error!\n");
+              kill(f);
+          }
+      }
+  }
+
   if(fault_addr == NULL || !is_user_vaddr(fault_addr) || !not_present)
      sys_exit(-1);
   if(pagedir_get_page(cur->pagedir, fault_addr) == NULL)
@@ -160,11 +208,11 @@ page_fault (struct intr_frame *f)
   /* To implement virtual memory, delete the rest of the function
      body, and replace it with code that brings in the page to
      which fault_addr refers. */
-  printf ("Page fault at %p: %s error %s page in %s context.\n",
+  /*printf ("Page fault at %p: %s error %s page in %s context.\n",
           fault_addr,
           not_present ? "not present" : "rights violation",
           write ? "writing" : "reading",
           user ? "user" : "kernel");
-  kill (f);
+  kill (f);*/
 }
 

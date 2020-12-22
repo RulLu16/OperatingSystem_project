@@ -58,10 +58,12 @@ static long long user_ticks;    /* # of timer ticks in user programs. */
 #define TIME_SLICE 4            /* # of timer ticks to give each thread. */
 static unsigned thread_ticks;   /* # of timer ticks since last yield. */
 
-#ifndef USERPROG
+//#ifndef USERPROG
 /* Project 3. */
 bool thread_prior_aging;
-#endif
+//#endif
+
+//bool thread_started;
 
 /* If false (default), use round-robin scheduler.
    If true, use multi-level feedback queue scheduler.
@@ -129,6 +131,7 @@ thread_start (void)
 
   /* Wait for the idle thread to initialize idle_thread. */
   sema_down (&idle_started);
+  //thread_started = true;
 }
 
 /* Called by the timer interrupt handler at each timer tick.
@@ -217,6 +220,10 @@ thread_create (const char *name, int priority,
   sf = alloc_frame (t, sizeof *sf);
   sf->eip = switch_entry;
   sf->ebp = 0;
+  
+#ifdef VM
+  t->stack_pages = 1;
+#endif
 
   /* Add to run queue. */
   thread_unblock (t);
@@ -237,6 +244,8 @@ thread_create (const char *name, int priority,
 void
 thread_block (void) 
 {
+  //if(!thread_started) return;
+
   ASSERT (!intr_context ());
   ASSERT (intr_get_level () == INTR_OFF);
 
@@ -327,6 +336,8 @@ thread_exit (void)
 void
 thread_yield (void) 
 {
+  //if(!thread_started) return;
+
   struct thread *cur = thread_current ();
   enum intr_level old_level;
   
